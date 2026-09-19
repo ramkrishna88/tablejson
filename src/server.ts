@@ -86,9 +86,15 @@ fastify.get('/openapi.json', async () => {
   return {
     openapi: '3.0.3',
     info: {
-      title: 'PDF Table Extractor API',
-      description: 'High-Performance API for extracting tabular data from PDF documents into clean, structured JSON.',
-      version: '1.0.0'
+      title: 'TableJSON — PDF Table to JSON',
+      description: 'Upload a text-layer PDF (up to 500MB) and receive structured tables as JSON. Digital PDFs only — scanned or image-only files are not OCR’d. Playground: https://tablejson.com',
+      version: '1.0.0',
+      contact: {
+        name: 'TableJSON',
+        url: 'https://tablejson.com'
+      },
+      'x-category': 'Data',
+      'x-website': 'https://tablejson.com'
     },
     servers: [
       {

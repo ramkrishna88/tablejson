@@ -112,12 +112,21 @@ Short Hub description:
 
 ## Zapier
 
-Use **Webhooks by Zapier** until the Zapier app is published:
+The Zapier CLI app lives in `/zapier`. Until it is published on the Zapier directory, use **Webhooks by Zapier**:
 
 - URL: `https://tablejson.com/v1/extract-tables`
 - Method: POST
 - Header: `X-API-Key`
 - Body: multipart field `file`
+
+To work on the app:
+
+```bash
+cd zapier
+npm install
+npx zapier login
+npx zapier push
+```
 
 ## Deploy
 
