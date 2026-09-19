@@ -112,7 +112,11 @@ Short Hub description:
 
 ## Zapier
 
-The Zapier CLI app lives in `/zapier`. Until it is published on the Zapier directory, use **Webhooks by Zapier**:
+The Zapier app **TableJSON** is registered and pushed (version 1.0.1). It is intended as a public directory app. Zapier still requires live Zaps and review before it appears in search.
+
+Invite testers now: https://zapier.com/developer/public-invite/246538/82421bacbfa80fcb07b5cf70c00f4e06/
+
+Until the directory listing is approved, anyone can also use **Webhooks by Zapier**:
 
 - URL: `https://tablejson.com/v1/extract-tables`
 - Method: POST

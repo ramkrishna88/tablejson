@@ -6,10 +6,11 @@ module.exports = {
       label: 'API Key',
       required: true,
       type: 'password',
-      helpText: 'Your TableJSON API key. Send as X-API-Key.'
+      helpText:
+        'Your TableJSON API key. Send as X-API-Key. Get a key at https://tablejson.com'
     }
   ],
-  connectionLabel: 'TableJSON',
+  connectionLabel: '{{service}}',
   test: {
     url: 'https://tablejson.com/v1/health',
     method: 'GET'

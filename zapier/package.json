@@ -1,6 +1,6 @@
 {
   "name": "tablejson-zapier",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Extract tables from PDFs into JSON with TableJSON.",
   "main": "index.js",
   "scripts": {
@@ -13,5 +13,8 @@
   "dependencies": {
     "zapier-platform-core": "15.19.0"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "zapier-platform-cli": "^15.19.0"
+  }
 }

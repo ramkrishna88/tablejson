@@ -2,7 +2,7 @@ module.exports = {
   key: 'extract_tables',
   noun: 'Table',
   display: {
-    label: 'Extract Tables from PDF',
+    label: 'Extract Tables From PDF',
     description: 'Upload a PDF and get structured tables as JSON.'
   },
   operation: {
