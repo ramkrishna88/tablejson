@@ -1,0 +1,44 @@
+{
+  "name": "pdf-table-extractor-api",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "High-Performance PDF Table-to-JSON Extraction API with Interactive UI Playground",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc && rm -rf dist/public && cp -r src/public dist/public",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "test:sample": "tsx scripts/test-extraction.ts"
+  },
+  "keywords": [
+    "pdf",
+    "table-extractor",
+    "api",
+    "json",
+    "rapidapi",
+    "zapier"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@fastify/multipart": "^8.2.0",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/static": "^7.0.1",
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^3.0.0",
+    "@types/pdfkit": "^0.17.6",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.26.2",
+    "pdf-parse": "^1.1.1",
+    "pdf2json": "^3.1.3",
+    "pdfkit": "^0.20.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "@types/pdf-parse": "^1.1.4",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  }
+}

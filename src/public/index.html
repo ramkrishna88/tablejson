@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Table Extractor API — Test Playground</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: rgba(17, 24, 39, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-green: #10b981;
+      --accent-green-glow: rgba(16, 185, 129, 0.25);
+      --accent-blue: #3b82f6;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --json-key: #38bdf8;
+      --json-string: #34d399;
+      --json-number: #f59e0b;
+      --json-boolean: #f43f5e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.12) 0%, transparent 40%);
+    }
+
+    header {
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(12px);
+      background: rgba(11, 15, 25, 0.85);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #10b981, #3b82f6);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #fff;
+      box-shadow: 0 0 15px var(--accent-green-glow);
+    }
+
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .badge {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: var(--accent-green);
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+
+    main {
+      max-width: 100%;
+      width: 100%;
+      margin: 1.5rem auto;
+      padding: 0 1.5rem;
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+        padding: 0 1rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      main {
+        grid-template-columns: 1fr;
+        padding: 0 0.75rem;
+        margin: 1rem auto;
+      }
+      header {
+        padding: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .badge {
+        font-size: 0.7rem;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: visible;
+    }
+
+    /* Right panel stretches to fill height */
+    .panel-output {
+      height: calc(100vh - 140px);
+      min-height: 600px;
+      position: sticky;
+      top: 80px;
+    }
+
+    @media (max-width: 768px) {
+      .panel-output {
+        height: auto;
+        min-height: 500px;
+        position: static;
+      }
+    }
+
+    .panel-header {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dropzone {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 2.5rem 1.25rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.05);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+    }
+
+    .dropzone-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+    }
+
+    .dropzone-text {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .dropzone-text strong {
+      color: var(--accent-green);
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-info {
+      margin-top: 1.25rem;
+      padding: 0.85rem 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .file-name {
+      font-weight: 500;
+      font-size: 0.88rem;
+      word-break: break-all;
+    }
+
+    .file-size-tag {
+      font-size: 0.78rem;
+      color: var(--accent-blue);
+      font-weight: 600;
+      background: rgba(59, 130, 246, 0.15);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    .progress-container {
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981, #3b82f6);
+      transition: width 0.1s ease;
+      box-shadow: 0 0 10px var(--accent-green-glow);
+    }
+
+    .progress-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      padding: 0.85rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 1.25rem;
+      width: 100%;
+      box-shadow: 0 4px 15px var(--accent-green-glow);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--accent-green-glow);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-green);
+    }
+
+    .stat-lbl {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .controls-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+
+    .tree-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .mini-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mini-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+    }
+
+    .output-container {
+      flex: 1;
+      background: #060911;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      overflow-y: auto;
+      min-height: 200px;
+      line-height: 1.5;
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .output-container {
+        min-height: 300px;
+        max-height: 400px;
+      }
+    }
+
+    /* Collapsible JSON Tree Styles */
+    .json-line {
+      white-space: nowrap;
+    }
+
+    .json-node {
+      margin-left: 1.2rem;
+      white-space: nowrap;
+    }
+
+    .json-toggle {
+      cursor: pointer;
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      text-align: center;
+      line-height: 16px;
+      font-size: 0.75rem;
+      color: var(--accent-green);
+      user-select: none;
+      transition: transform 0.15s ease;
+      margin-right: 2px;
+    }
+
+    .json-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .json-key {
+      color: var(--json-key);
+      font-weight: 500;
+    }
+
+    .json-string {
+      color: var(--json-string);
+    }
+
+    .json-number {
+      color: var(--json-number);
+    }
+
+    .json-boolean {
+      color: var(--json-boolean);
+    }
+
+    .json-collapsed-preview {
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 0.8rem;
+    }
+
+    .json-children.hidden {
+      display: none;
+    }
+
+    /* Fixed Table Container */
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: auto;
+    }
+
+    table.rendered-table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: collapse;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.85rem;
+    }
+
+    table.rendered-table th, table.rendered-table td {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.6rem 0.8rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    table.rendered-table th {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .actions-bar {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      flex: 1;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* BottomSheet Fullscreen Modal */
+    .bottomsheet-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .bottomsheet-content {
+      background: #0f172a;
+      border-top: 1px solid var(--accent-green);
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      height: 85vh;
+      max-width: 1600px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+      animation: slideUp 0.3s ease;
+    }
+
+    .bottomsheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .bottomsheet-body {
+      flex: 1;
+      overflow: auto;
+      background: #060911;
+      border-radius: 12px;
+      padding: 1rem;
+      border: 1px solid var(--card-border);
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">📊</div>
+      <div class="logo-text">PDF Table Extractor API</div>
+    </div>
+    <div class="badge">v1.0.0 — Live Playground (500MB Stream Limit)</div>
+  </header>
+
+  <main>
+    <!-- Left Panel: File Upload -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>Upload PDF Document</span>
+        <span style="font-size: 0.8rem; color: var(--accent-blue)">Stream Limit: 500MB</span>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-icon">📄</div>
+        <div class="dropzone-text">
+          Drag & drop your PDF file here (small or large 10MB–500MB), or <strong>Browse File</strong>
+        </div>
+        <input type="file" id="fileInput" class="file-input" accept="application/pdf">
+      </div>
+
+      <div class="file-info" id="fileInfo">
+        <div>
+          <div class="file-name" id="fileName">sample_invoice.pdf</div>
+          <span class="file-size-tag" id="fileSizeTag">0 MB</span>
+        </div>
+        <span style="font-size: 0.8rem; color: var(--accent-green);">Ready</span>
+      </div>
+
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+        <div class="progress-text">
+          <span id="progressPercent">0%</span>
+          <span id="progressStatus">Uploading stream...</span>
+        </div>
+      </div>
+
+      <button class="btn" id="extractBtn" disabled>
+        <span id="btnText">Extract Tables to JSON</span>
+      </button>
+    </div>
+
+    <!-- Right Panel: Results & Collapsible Tree Viewer (sticky, full height) -->
+    <div class="panel panel-output" style="display: flex; flex-direction: column;">
+      <div class="panel-header">
+        <span>Extraction Output</span>
+        <span style="font-size: 0.8rem; color: var(--text-muted)" id="statusText">Awaiting PDF...</span>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-val" id="statTime">0 ms</div>
+          <div class="stat-lbl">Latency</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statTables">0</div>
+          <div class="stat-lbl">Tables Found</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statRows">0</div>
+          <div class="stat-lbl">Total Rows</div>
+        </div>
+      </div>
+
+      <div class="controls-header">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('json')">JSON Response</button>
+          <button class="tab-btn" onclick="switchTab('table')">Rendered Table View</button>
+        </div>
+        <div class="tree-controls">
+          <button class="mini-btn" id="expandModalBtn" onclick="openBottomSheet()" style="display: none;">🔍 Fullscreen</button>
+          <button class="mini-btn" id="expandAllBtn" onclick="expandAllJSON()" style="display: none;">▼ Expand All</button>
+          <button class="mini-btn" id="collapseAllBtn" onclick="collapseAllJSON()" style="display: none;">▶ Collapse</button>
+        </div>
+      </div>
+
+      <div class="output-container" id="jsonView">
+        <div id="jsonTreeContainer" style="color: var(--text-muted);">
+          // Upload a PDF file on the left to extract structured tables into a collapsible JSON tree...
+        </div>
+      </div>
+
+      <div class="output-container" id="tableView" style="display: none;">
+        <div class="table-wrapper" id="tableOutput" style="color: var(--text-muted); font-size: 0.9rem;">
+          No table rendered yet.
+        </div>
+      </div>
+
+      <div class="actions-bar">
+        <button class="btn-secondary" onclick="copyJSON()">📋 Copy JSON</button>
+        <button class="btn-secondary" onclick="downloadJSON()">💾 Download JSON</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- BottomSheet Modal for Fullscreen Big Table Inspection -->
+  <div class="bottomsheet-overlay" id="bottomSheet">
+    <div class="bottomsheet-content">
+      <div class="bottomsheet-header">
+        <div>
+          <h3 style="color: var(--accent-green);">🔍 Fullscreen Wide Table Inspection</h3>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Scroll horizontally & vertically to inspect all 50+ columns comfortably</span>
+        </div>
+        <button class="close-btn" onclick="closeBottomSheet()">✕</button>
+      </div>
+      <div class="bottomsheet-body" id="modalTableContainer">
+        <!-- Rendered Fullscreen Table Here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSizeTag = document.getElementById('fileSizeTag');
+    const extractBtn = document.getElementById('extractBtn');
+    const btnText = document.getElementById('btnText');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBarFill = document.getElementById('progressBarFill');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressStatus = document.getElementById('progressStatus');
+
+    let selectedFile = null;
+    let lastResponseData = null;
+    let currentTablePageIndex = 1;
+    const ROWS_PER_PAGE = 50;
+
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    function handleFileSelect(file) {
+      if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
+        alert('Please select a valid PDF file.');
+        return;
+      }
+      selectedFile = file;
+      fileName.textContent = file.name;
+      
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      fileSizeTag.textContent = `${sizeMB} MB`;
+
+      fileInfo.style.display = 'flex';
+      extractBtn.disabled = false;
+      progressContainer.style.display = 'none';
+    }
+
+    extractBtn.addEventListener('click', () => {
+      if (!selectedFile) return;
+
+      extractBtn.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span> Extracting Tables...';
+      document.getElementById('statusText').textContent = 'Uploading & Extracting...';
+      
+      progressContainer.style.display = 'block';
+      progressBarFill.style.width = '0%';
+      progressPercent.textContent = '0%';
+      progressStatus.textContent = 'Uploading Stream...';
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/v1/extract-tables', true);
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressBarFill.style.width = `${percent}%`;
+          progressPercent.textContent = `${percent}%`;
+          if (percent === 100) {
+            progressStatus.textContent = 'Processing PDF Tables...';
+          }
+        }
+      };
+
+      xhr.onload = () => {
+        extractBtn.disabled = false;
+        btnText.textContent = 'Extract Tables to JSON';
+
+        // Immediately hide progress bar as soon as response arrives
+        progressContainer.style.display = 'none';
+
+        try {
+          const data = JSON.parse(xhr.responseText);
+          lastResponseData = data;
+
+          if (xhr.status >= 200 && xhr.status < 300 && data.status === 'success') {
+            document.getElementById('statTime').textContent = `${data.metadata?.execution_time_ms || 0} ms`;
+            document.getElementById('statTables').textContent = data.tables_found || 0;
+            
+            let totalRows = 0;
+            if (data.tables) {
+              data.tables.forEach(t => totalRows += (t.total_rows || 0));
+            }
+            document.getElementById('statRows').textContent = totalRows;
+
+            setTimeout(() => {
+              renderJSONTree(data);
+              currentTablePageIndex = 1;
+              renderTableView(data, currentTablePageIndex);
+            }, 10);
+
+            document.getElementById('statusText').textContent = `Success (${xhr.status} OK)`;
+            document.getElementById('expandAllBtn').style.display = 'inline-block';
+            document.getElementById('collapseAllBtn').style.display = 'inline-block';
+            document.getElementById('expandModalBtn').style.display = 'inline-block';
+          } else {
+            document.getElementById('jsonTreeContainer').innerHTML = `<div style="color: var(--json-boolean); font-weight: bold;">Error ${xhr.status}: ${data.message || data.error_code}</div>`;
+            document.getElementById('statusText').textContent = `Error ${xhr.status}`;
+            renderJSONTree(data);
+          }
+        } catch (err) {
+          document.getElementById('jsonTreeContainer').innerHTML = `<div style="color: var(--json-boolean);">Error parsing server response: ${err.message}</div>`;
+          document.getElementById('statusText').textContent = 'Server Error';
+        }
+      };
+
+      xhr.onerror = () => {
+        extractBtn.disabled = false;
+        btnText.textContent = 'Extract Tables to JSON';
+        progressContainer.style.display = 'none';
+        document.getElementById('statusText').textContent = 'Network Error';
+        alert('Network upload error occurred.');
+      };
+
+      xhr.send(formData);
+    });
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      if (tab === 'json') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('jsonView').style.display = 'block';
+        document.getElementById('tableView').style.display = 'none';
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('jsonView').style.display = 'none';
+        document.getElementById('tableView').style.display = 'block';
+      }
+    }
+
+    // --- Interactive Collapsible JSON Tree Builder ---
+    function renderJSONTree(data) {
+      const container = document.getElementById('jsonTreeContainer');
+      container.innerHTML = '';
+      container.appendChild(createJSONNode(data, null, true, 0));
+    }
+
+    function createJSONNode(value, key = null, isLast = true, depth = 0) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'json-line';
+
+      const type = Array.isArray(value) ? 'array' : (value === null ? 'null' : typeof value);
+
+      if (type === 'object' || type === 'array') {
+        const isArray = type === 'array';
+        const keys = isArray ? value : Object.keys(value);
+        const openBrace = isArray ? '[' : '{';
+        const closeBrace = isArray ? ']' : '}';
+        const count = keys.length;
+
+        const autoCollapse = count > 50 || (key === 'rows' && count > 10) || depth > 2;
+
+        const header = document.createElement('div');
+        header.style.display = 'inline-block';
+
+        const toggle = document.createElement('span');
+        toggle.className = `json-toggle ${autoCollapse ? 'collapsed' : ''}`;
+        toggle.textContent = autoCollapse ? '▶' : '▼';
+
+        const keySpan = document.createElement('span');
+        if (key !== null) {
+          keySpan.innerHTML = `<span class="json-key">"${key}"</span>: `;
+        }
+
+        const openSpan = document.createElement('span');
+        openSpan.textContent = openBrace;
+
+        const previewSpan = document.createElement('span');
+        previewSpan.className = 'json-collapsed-preview';
+        previewSpan.style.display = autoCollapse ? 'inline' : 'none';
+        previewSpan.textContent = ` ... ${count} ${isArray ? 'items' : 'keys'} ${closeBrace}${isLast ? '' : ','}`;
+
+        header.appendChild(toggle);
+        header.appendChild(keySpan);
+        header.appendChild(openSpan);
+        header.appendChild(previewSpan);
+        wrapper.appendChild(header);
+
+        const childrenContainer = document.createElement('div');
+        childrenContainer.className = `json-children ${autoCollapse ? 'hidden' : ''}`;
+
+        if (isArray) {
+          const displayLimit = Math.min(value.length, 100);
+          for (let index = 0; index < displayLimit; index++) {
+            childrenContainer.appendChild(createJSONNode(value[index], null, index === value.length - 1, depth + 1));
+          }
+          if (value.length > 100) {
+            const moreNotice = document.createElement('div');
+            moreNotice.style.color = 'var(--text-muted)';
+            moreNotice.style.fontSize = '0.8rem';
+            moreNotice.style.paddingLeft = '1.2rem';
+            moreNotice.textContent = `... and ${value.length - 100} more items (Download full JSON to view all)`;
+            childrenContainer.appendChild(moreNotice);
+          }
+        } else {
+          const entries = Object.entries(value);
+          entries.forEach(([k, v], index) => {
+            childrenContainer.appendChild(createJSONNode(v, k, index === entries.length - 1, depth + 1));
+          });
+        }
+
+        wrapper.appendChild(childrenContainer);
+
+        const footer = document.createElement('div');
+        footer.className = 'json-footer';
+        footer.style.display = autoCollapse ? 'none' : 'block';
+        footer.textContent = `${closeBrace}${isLast ? '' : ','}`;
+        wrapper.appendChild(footer);
+
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isCollapsed = toggle.classList.toggle('collapsed');
+          toggle.textContent = isCollapsed ? '▶' : '▼';
+          childrenContainer.classList.toggle('hidden', isCollapsed);
+          footer.style.display = isCollapsed ? 'none' : 'block';
+          previewSpan.style.display = isCollapsed ? 'inline' : 'none';
+        });
+
+      } else {
+        const line = document.createElement('div');
+        line.className = 'json-node';
+
+        let formattedValue = value;
+        let valueClass = 'json-string';
+
+        if (type === 'string') {
+          formattedValue = `"${value}"`;
+        } else if (type === 'number') {
+          valueClass = 'json-number';
+        } else if (type === 'boolean' || type === 'null') {
+          valueClass = 'json-boolean';
+        }
+
+        const keyPart = key !== null ? `<span class="json-key">"${key}"</span>: ` : '';
+        line.innerHTML = `${keyPart}<span class="${valueClass}">${formattedValue}</span>${isLast ? '' : ','}`;
+        wrapper.appendChild(line);
+      }
+
+      return wrapper;
+    }
+
+    function expandAllJSON() {
+      document.querySelectorAll('.json-toggle').forEach(t => {
+        t.classList.remove('collapsed');
+        t.textContent = '▼';
+      });
+      document.querySelectorAll('.json-children').forEach(c => c.classList.remove('hidden'));
+      document.querySelectorAll('.json-footer').forEach(f => f.style.display = 'block');
+      document.querySelectorAll('.json-collapsed-preview').forEach(p => p.style.display = 'none');
+    }
+
+    function collapseAllJSON() {
+      document.querySelectorAll('.json-toggle').forEach(t => {
+        t.classList.add('collapsed');
+        t.textContent = '▶';
+      });
+      document.querySelectorAll('.json-children').forEach(c => c.classList.add('hidden'));
+      document.querySelectorAll('.json-footer').forEach(f => f.style.display = 'none');
+      document.querySelectorAll('.json-collapsed-preview').forEach(p => p.style.display = 'inline');
+    }
+
+    // --- Fast Virtualized Table View with Pagination ---
+    function renderTableView(data, pageIndex = 1, targetContainerId = 'tableOutput') {
+      const container = document.getElementById(targetContainerId);
+      if (!data.tables || data.tables.length === 0) {
+        container.innerHTML = '<div>No tabular data detected in document.</div>';
+        return;
+      }
+
+      let html = '';
+      data.tables.forEach((table, i) => {
+        const totalRows = table.total_rows || 0;
+        const totalPages = Math.ceil(totalRows / ROWS_PER_PAGE) || 1;
+        const currentPage = Math.min(Math.max(1, pageIndex), totalPages);
+
+        const startIdx = (currentPage - 1) * ROWS_PER_PAGE;
+        const endIdx = Math.min(startIdx + ROWS_PER_PAGE, totalRows);
+        const pageRows = table.rows.slice(startIdx, endIdx);
+
+        html += `<div style="margin-bottom: 1.5rem;">`;
+        html += `<h4 style="color: var(--accent-green); margin-bottom: 0.5rem;">Table ${table.table_id} (${table.headers.length} Columns x ${totalRows.toLocaleString()} Rows)</h4>`;
+
+        if (totalRows > ROWS_PER_PAGE) {
+          html += `<div class="pagination-bar">`;
+          html += `<span>Showing rows <strong>${startIdx + 1}–${endIdx}</strong> of <strong>${totalRows.toLocaleString()}</strong></span>`;
+          html += `<div class="pagination-controls">`;
+          html += `<button class="mini-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">◀ Prev</button>`;
+          html += `<span style="align-self: center; font-weight: 600;">Page ${currentPage} of ${totalPages}</span>`;
+          html += `<button class="mini-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">Next ▶</button>`;
+          html += `</div></div>`;
+        }
+
+        html += '<div class="table-wrapper"><table class="rendered-table"><thead><tr>';
+        table.headers.forEach(h => {
+          html += `<th>${h}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        pageRows.forEach(r => {
+          html += '<tr>';
+          table.headers.forEach(h => {
+            html += `<td>${r.data[h] || ''}</td>`;
+          });
+          html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+
+        if (totalRows > ROWS_PER_PAGE) {
+          html += `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Showing 50 rows per page. Click "🔍 Fullscreen View" to open wide modal.</div>`;
+        }
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function changePage(newPage) {
+      currentTablePageIndex = newPage;
+      if (lastResponseData) {
+        renderTableView(lastResponseData, currentTablePageIndex, 'tableOutput');
+        renderTableView(lastResponseData, currentTablePageIndex, 'modalTableContainer');
+      }
+    }
+
+    function openBottomSheet() {
+      if (!lastResponseData) return;
+      document.getElementById('bottomSheet').style.display = 'flex';
+      renderTableView(lastResponseData, currentTablePageIndex, 'modalTableContainer');
+    }
+
+    function closeBottomSheet() {
+      document.getElementById('bottomSheet').style.display = 'none';
+    }
+
+    function copyJSON() {
+      if (!lastResponseData) return;
+      navigator.clipboard.writeText(JSON.stringify(lastResponseData, null, 2));
+      alert('JSON copied to clipboard!');
+    }
+
+    function downloadJSON() {
+      if (!lastResponseData) return;
+      const blob = new Blob([JSON.stringify(lastResponseData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `extracted_tables_${Date.now()}.json`;
+      a.click();
+    }
+  </script>
+</body>
+</html>
