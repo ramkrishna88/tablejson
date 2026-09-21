@@ -24,7 +24,7 @@ User: finance/ops person who pastes invoice PDFs into ChatGPT. Still a role, not
 
 Wedge (Approach A, completeness 7/10, decision `e37ae261`): drop a digital invoice PDF, download a frozen-header `.xlsx` whose line items, tax, and total either close or fail in red. No login, same playground pattern as tablejson.com.
 
-This week is the assignment only (10 PDFs + watch + quote). Code starts after that pack exists.
+This week is the assignment plus an **extract-only diagnostic**. Do not add exceljs, `extractPdfModel`, or `/v1/invoice-xlsx` until that count exists. The closer spec below stays the plan after the diagnostic, not this week's code.
 
 Upgrade trigger: 20 ChatGPT-paste invoices are ≥70% scans, or 3 finance/ops people pay for the workbook.
 
@@ -64,7 +64,7 @@ Build only after the assignment pack exists. Then add an invoice closer on table
 
 ### Sequence
 
-1. Assignment (this week): 10 ChatGPT-paste invoice PDFs, one unguided watch, text-layer count, one quote.
+1. Assignment (this week): 10 ChatGPT-paste invoice PDFs, one unguided watch, text-layer count, one quote. Run each file through current `extractTablesFromPDF` and count: invoice_number visible on a raw page-1 line, four bindable columns on the largest table, single tax row. No exceljs.
 2. Prototype on the text-layer subset of that pack as fixtures (need ≥8 digital files). Target: ≥8 mapped without a model. If the subset is smaller than 8, stop (not enough digital fixtures). If ≥8 digital exist and fewer than 8 map, change approach (templates, a human confirm step, or accept LLM cost). Do not assume tables-only JSON is enough.
 3. Playground drop + `.xlsx` download on tablejson.com. Railway via existing pipeline. New `POST /v1/invoice-xlsx` (same-origin playground, no key, same rate limit as extract). Response `Content-Disposition: attachment; filename="<pdf-basename>.xlsx"`. Keep `POST /v1/extract-tables` JSON as-is. Invoice drop zone on `/` next to Extract, not a replacement.
 4. Zapier and RapidAPI stay out of v1. Revisit only after the upgrade trigger.
@@ -191,10 +191,51 @@ Existing TableJSON site + Railway. No new binary. Playground after the assignmen
 
 ## The Assignment
 
-This week, do not write the closer. Get 10 invoice PDFs from people who currently paste them into ChatGPT (suppliers, a bookkeeper, your own AP). Sit behind one of them while they do the ChatGPT workaround and do not help. Time it. Count how many files have a text layer. Bring the count and one quote from their mouth. Code starts after that pack exists.
+This week, do not write the closer. Get 10 invoice PDFs from people who currently paste them into ChatGPT (suppliers, a bookkeeper, your own AP). Sit behind one of them while they do the ChatGPT workaround and do not help. Time it. Count how many files have a text layer. Run each through current `extractTablesFromPDF` (playground Extract is enough) and tally: invoice number on a page-1 line, four bindable columns, one tax row. Bring the tally and one quote. No exceljs, no new route, until that tally exists.
 
 ## What I noticed about how you think
 
 - You started at "Quantum Physics or AI or LLM" and "everyone has to use it." You then picked "No one would be upset tomorrow" and later "finance/ops person pasting invoice PDFs into ChatGPT." That cut is the session.
 - You agreed "Has an LLM is not the product" and revised scans out of week one. You did not name a person (no Sarah, no company). The next sharpness is a name, not a stack.
 - You already ship TableJSON and HidePDF. The closer sits on extract you already have. A third sci-fi brand would throw that away.
+
+## NOT in scope
+
+- Quantum, a new LLM, OCR, vision models, Zapier/RapidAPI for this endpoint, email inbox, review UI, Excel add-in, GST/CGST split, 25MB invoice cap (user kept 500MB).
+- exceljs / `POST /v1/invoice-xlsx` / `extractPdfModel` this week (deferred until diagnostic tally).
+
+## What already exists
+
+- `extractTablesFromPDF` + worker parse, playground dropzone, `requireExtractAuth`, SSRF URL allowlist in `extract.ts`, RapidAPI JSON extract. Reuse those. Do not rebuild a second parser this week.
+
+## Implementation Tasks
+
+Synthesized from this review's findings. Each task derives from a specific finding above. Run with Claude Code or Codex; checkbox as you ship.
+
+- [ ] **T1 (P1, human: ~1 day / CC: ~0)** — demand — Collect 10 ChatGPT-paste invoices and sit behind one person unhelped
+  - Surfaced by: office-hours assignment + outside voice
+  - Files: local folder only (do not commit customer PDFs)
+  - Verify: text-layer vs scan count written down; one quote
+- [ ] **T2 (P1, human: ~1h / CC: ~10min)** — diagnostic — Run those 10 through current Extract and tally mapper assumptions
+  - Surfaced by: Architecture / outside voice — extra-table lines may not exist
+  - Files: playground or `scripts/test-extraction.ts`
+  - Verify: counts for invoice_number on page-1 line, four columns, one tax row
+- [ ] **T3 (P2, human: ~2 days / CC: ~4h)** — closer — After tally, implement invoiceWorkbook + POST on extractRoutes (not this week)
+  - Surfaced by: approved closer spec
+  - Files: `src/services/invoiceWorkbook.ts`, `src/routes/extract.ts`, `src/public/index.html`, `package.json`
+  - Verify: `tsx --test` on synthetic fixtures; then 8/10 digital map gate
+
+Sequential implementation, no parallelization opportunity.
+
+## GSTACK REVIEW REPORT
+
+| Runs | Status | Findings |
+|------|--------|----------|
+| plan-eng-review native | issues_open | Scope reduced to 2 files then frozen; 4 architecture + 1 CQ + 1 test decisions folded; closer code deferred |
+| outside voice | unavailable (Codex missing); in-host subagent | Do not implement this week; diagnose with current extract |
+| CROSS-MODEL | resolved | User accepted extract-only diagnostic this week |
+
+VERDICT: NOT CLEARED for ship — Eng review resolved decisions but implementation is blocked on the 10-PDF diagnostic. OUTSIDE COVERAGE: missing (Codex not installed). CROSS-MODEL: accepted A (diagnose first).
+
+NO UNRESOLVED DECISIONS
+
