@@ -1,0 +1,5 @@
+Contact: mailto:hello@tablejson.com
+Expires: 2027-09-21T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://tablejson.com/.well-known/security.txt
+Policy: https://tablejson.com/privacy

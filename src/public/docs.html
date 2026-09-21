@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1210860150241703" crossorigin="anonymous"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Docs — TableJSON</title>
+  <meta name="description" content="TableJSON API docs: extract tables from text-layer PDFs into JSON. RapidAPI, Zapier, and playground.">
+  <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=2">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:image" content="https://tablejson.com/og.png">
+  <meta name="theme-color" content="#0b0f19">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+  <header>
+    <a class="logo-container" href="/">
+      <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
+      <div class="logo-text">TableJSON</div>
+    </a>
+    <nav class="header-links">
+      <a href="/">Playground</a>
+      <a class="on" href="/docs">Docs</a>
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </header>
+  <main class="legal">
+    <h2>API documentation</h2>
+    <p>TableJSON extracts tables from text-layer PDFs and returns clean JSON. Use the <a href="/">playground</a>, RapidAPI, Zapier, or a direct HTTP call.</p>
+
+    <h3>Fastest RapidAPI test</h3>
+    <ol>
+      <li>Open <strong>POST Example extract response</strong></li>
+      <li>Leave the JSON body as the mini PDF URL</li>
+      <li>Click <strong>Run</strong></li>
+      <li>Open <strong>Response</strong> — you should see a 2-row sample (<code>Hosting</code>, <code>Licenses</code>)</li>
+    </ol>
+    <p>That example does not parse the PDF, so Run stays fast. Full notes: <a href="/docs/example">example playground docs</a>.</p>
+
+    <h3>Live extract</h3>
+    <p>Use <code>POST /v1/extract-tables</code> for a real PDF.</p>
+    <ul>
+      <li>Multipart field <code>file</code> — upload a PDF</li>
+      <li>Or JSON body <code>{"file":"https://…"}</code> — public HTTPS URL</li>
+    </ul>
+    <p>Small test file: <a href="/sample-mini.pdf">sample-mini.pdf</a>. Larger sample: <a href="/sample.pdf">sample.pdf</a>.</p>
+
+    <h3>Auth</h3>
+    <ul>
+      <li>RapidAPI testers: send only <code>X-RapidAPI-Key</code></li>
+      <li>Direct callers: send <code>X-API-Key</code> or <code>Authorization: Bearer</code></li>
+    </ul>
+
+    <h3>Endpoints</h3>
+    <ul>
+      <li><code>GET /v1/health</code> — API is up</li>
+      <li><code>POST /v1/example</code> — tiny 2-row sample, no PDF parse</li>
+      <li><code>POST /v1/extract-tables</code> — live table extract</li>
+    </ul>
+    <p>Machine-readable spec: <a href="/openapi.json">/openapi.json</a>. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>.</p>
+  </main>
+  <footer>
+    <nav>
+      <a href="/">Playground</a>
+      <a href="/docs">Docs</a>
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <p>Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+  </footer>
+</body>
+</html>

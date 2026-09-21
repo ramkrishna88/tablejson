@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1210860150241703" crossorigin="anonymous"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF Table Extractor API — Test Playground</title>
+  <title>TableJSON — PDF Table to JSON</title>
+  <meta name="description" content="Extract tables from text-layer PDFs into clean JSON. Fast playground, RapidAPI, and Zapier ready.">
+  <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=2">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:image" content="https://tablejson.com/og.png">
+  <meta name="theme-color" content="#0b0f19">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -59,26 +68,63 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      color: inherit;
+      text-decoration: none;
     }
 
     .logo-icon {
       width: 36px;
       height: 36px;
-      background: linear-gradient(135deg, #10b981, #3b82f6);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 1.2rem;
-      color: #fff;
-      box-shadow: 0 0 15px var(--accent-green-glow);
+      object-fit: contain;
+      display: block;
     }
 
     .logo-text {
       font-size: 1.25rem;
       font-weight: 700;
       letter-spacing: -0.02em;
+    }
+
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .header-links a {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .header-links a:hover {
+      color: var(--text-main);
+    }
+
+    footer.site-footer {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 0 1rem 1.5rem;
+    }
+
+    footer.site-footer nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.35rem 0.9rem;
+      margin-bottom: 0.55rem;
+    }
+
+    footer.site-footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    footer.site-footer a:hover {
+      color: var(--text-main);
     }
 
     .badge {
@@ -600,11 +646,21 @@
 <body>
 
   <header>
-    <div class="logo-container">
-      <div class="logo-icon">📊</div>
-      <div class="logo-text">PDF Table Extractor API</div>
+    <a class="logo-container" href="/">
+      <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
+      <div class="logo-text">TableJSON</div>
+    </a>
+    <div class="header-links">
+      <a href="/docs">Docs</a>
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/contact">Contact</a>
+      <a href="https://rapidapi.com/chowdaryrk077/api/tablejson" target="_blank" rel="noopener">RapidAPI Hub</a>
+      <a href="/openapi.json" target="_blank" rel="noopener">Docs</a>
+      <a href="/sample.pdf" target="_blank" rel="noopener">Sample PDF</a>
+      <div class="badge">v1.0.0 — Live</div>
     </div>
-    <div class="badge">v1.0.0 — Live Playground (500MB Stream Limit)</div>
   </header>
 
   <main>
@@ -644,6 +700,7 @@
       <button class="btn" id="extractBtn" disabled>
         <span id="btnText">Extract Tables to JSON</span>
       </button>
+      <button class="btn-secondary" id="sampleBtn" type="button" style="margin-top: 0.75rem; width: 100%;">Try sample PDF (1 click)</button>
     </div>
 
     <!-- Right Panel: Results & Collapsible Tree Viewer (sticky, full height) -->
@@ -733,6 +790,14 @@
     let currentTablePageIndex = 1;
     const ROWS_PER_PAGE = 50;
 
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
     dropzone.addEventListener('click', () => fileInput.click());
 
     dropzone.addEventListener('dragover', (e) => {
@@ -772,6 +837,24 @@
       progressContainer.style.display = 'none';
     }
 
+    document.getElementById('sampleBtn').addEventListener('click', async () => {
+      const sampleBtn = document.getElementById('sampleBtn');
+      sampleBtn.disabled = true;
+      sampleBtn.textContent = 'Loading sample...';
+      try {
+        const res = await fetch('/sample.pdf', { cache: 'force-cache' });
+        if (!res.ok) throw new Error('Could not load sample PDF');
+        const blob = await res.blob();
+        handleFileSelect(new File([blob], 'tablejson-sample.pdf', { type: 'application/pdf' }));
+        extractBtn.click();
+      } catch (err) {
+        alert(err.message || 'Could not load sample PDF');
+      } finally {
+        sampleBtn.disabled = false;
+        sampleBtn.textContent = 'Try sample PDF (1 click)';
+      }
+    });
+
     extractBtn.addEventListener('click', () => {
       if (!selectedFile) return;
 
@@ -789,6 +872,7 @@
 
       const xhr = new XMLHttpRequest();
       xhr.open('POST', '/v1/extract-tables', true);
+      xhr.timeout = 180000;
 
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
@@ -849,6 +933,14 @@
         progressContainer.style.display = 'none';
         document.getElementById('statusText').textContent = 'Network Error';
         alert('Network upload error occurred.');
+      };
+
+      xhr.ontimeout = () => {
+        extractBtn.disabled = false;
+        btnText.textContent = 'Extract Tables to JSON';
+        progressContainer.style.display = 'none';
+        document.getElementById('statusText').textContent = 'Timed out';
+        alert('The request timed out. Try a smaller text-layer PDF.');
       };
 
       xhr.send(formData);
@@ -1031,14 +1123,14 @@
 
         html += '<div class="table-wrapper"><table class="rendered-table"><thead><tr>';
         table.headers.forEach(h => {
-          html += `<th>${h}</th>`;
+          html += `<th>${escapeHtml(h)}</th>`;
         });
         html += '</tr></thead><tbody>';
 
         pageRows.forEach(r => {
           html += '<tr>';
           table.headers.forEach(h => {
-            html += `<td>${r.data[h] || ''}</td>`;
+            html += `<td>${escapeHtml(r.data[h] || '')}</td>`;
           });
           html += '</tr>';
         });
@@ -1087,5 +1179,15 @@
       a.click();
     }
   </script>
+  <footer class="site-footer">
+    <nav>
+      <a href="/docs">Docs</a>
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <p>Text-layer PDFs only. Uploads are not stored. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+  </footer>
 </body>
 </html>

@@ -4,6 +4,10 @@ Extract tables from text-layer PDFs into clean JSON. Built for RapidAPI, Zapier,
 
 **Live playground:** [https://tablejson.com](https://tablejson.com)
 
+Site pages: [About](https://tablejson.com/about) · [Privacy](https://tablejson.com/privacy) · [Terms](https://tablejson.com/terms) · [Contact](https://tablejson.com/contact)
+
+Contact: hello@tablejson.com
+
 This API reads the PDF text layer. It does **not** OCR scanned or image-only PDFs.
 
 ## Endpoints
@@ -12,6 +16,8 @@ This API reads the PDF text layer. It does **not** OCR scanned or image-only PDF
 |---|---|---|---|
 | GET | `/` | No | Interactive playground |
 | GET | `/v1/health` | No | Health check |
+| GET | `/v1/example` | No | Tiny 2-row example JSON (RapidAPI Hub test) |
+| POST | `/v1/example` | No | Same example JSON, with body `{"file":"https://tablejson.com/sample-mini.pdf"}` |
 | GET | `/openapi.json` | No | OpenAPI 3 spec (RapidAPI import) |
 | POST | `/v1/extract-tables` | Yes | Upload a PDF, get tables as JSON |
 
@@ -104,7 +110,9 @@ API_KEY=change-me
 4. Category: **Data** (or Documents)
 5. Base URL / target: `https://tablejson.com`
 6. Security: RapidAPI gateway headers. On Railway, set `RAPIDAPI_PROXY_SECRET` to the secret RapidAPI shows you.
-7. Suggested plans: Basic (free, low quota), Pro `$19/mo` (10,000 calls)
+7. Suggested plans: Basic (free, 100 calls/month), Pro `$19/mo` (500,000 calls)
+
+RapidAPI Hub testers should run **GET /v1/example** or **GET /v1/health** first. Those are small sample responses and will not freeze Chrome. A live extract still returns every row.
 
 Short Hub description:
 

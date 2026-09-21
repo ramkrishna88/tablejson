@@ -1,4 +1,4 @@
-import pdfParse from 'pdf-parse';
+import { Worker } from 'node:worker_threads';
 
 export interface TableRow {
   row_index: number;
@@ -37,6 +37,74 @@ interface PageLine {
 
 const PAGE_MARKER = /^__PAGE_BREAK__(\d+)__$/;
 
+const PARSE_TIMEOUT_MS = 120_000;
+const MAX_PARALLEL_PARSES = 2;
+let parseSlots = Promise.resolve();
+let activeParses = 0;
+
+function withParseSlot<T>(fn: () => Promise<T>): Promise<T> {
+  const run = parseSlots.then(async () => {
+    while (activeParses >= MAX_PARALLEL_PARSES) {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    activeParses += 1;
+    try {
+      return await fn();
+    } finally {
+      activeParses -= 1;
+    }
+  });
+  parseSlots = run.then(() => undefined, () => undefined);
+  return run;
+}
+
+function parsePdfTextLayer(pdfBuffer: Buffer): Promise<{ text: string; numpages: number; info: Record<string, unknown> }> {
+  const workerUrl = new URL(
+    `./pdfParseWorker${import.meta.url.endsWith('.ts') ? '.ts' : '.js'}`,
+    import.meta.url
+  );
+
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(workerUrl, {
+      workerData: { bytes: Uint8Array.from(pdfBuffer) },
+      execArgv: import.meta.url.endsWith('.ts') ? process.execArgv : undefined
+    });
+
+    let settled = false;
+    const fail = (error: Error) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timer);
+      void worker.terminate();
+      reject(Object.assign(error, { statusCode: 400, error_code: 'INVALID_PDF' }));
+    };
+
+    const timer = setTimeout(() => {
+      fail(new Error('PDF parsing timed out.'));
+    }, PARSE_TIMEOUT_MS);
+
+    worker.once('message', (data) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timer);
+      void worker.terminate();
+      resolve(data);
+    });
+    worker.once('error', (error) => {
+      fail(error instanceof Error ? error : new Error('PDF parser failed.'));
+    });
+    worker.once('exit', (code) => {
+      if (code !== 0) {
+        fail(new Error('PDF parser failed.'));
+      }
+    });
+  });
+}
+
 /**
  * Text-layer PDF table extraction. Scanned/image-only PDFs are not OCR'd.
  */
@@ -46,24 +114,11 @@ export async function extractTablesFromPDF(
 ): Promise<PDFExtractionResult> {
   const startTime = Date.now();
 
-  let totalPages = 1;
-  let rawText = '';
-  let pdfInfo: any = {};
+  const pdfData = await withParseSlot(() => parsePdfTextLayer(pdfBuffer));
 
-  try {
-    const pdfData = await pdfParse(pdfBuffer, {
-      pagerender: renderPageWithMarker
-    });
-    totalPages = pdfData.numpages || 1;
-    rawText = pdfData.text || '';
-    pdfInfo = pdfData.info || {};
-  } catch {
-    const bufferStr = pdfBuffer.toString('latin1');
-    const textMatches = bufferStr.match(/\(([^()]+)\)/g);
-    rawText = textMatches
-      ? textMatches.map((match) => match.replace(/[()]/g, '')).join('\n')
-      : bufferStr;
-  }
+  const totalPages = pdfData.numpages || 1;
+  const rawText = pdfData.text || '';
+  const pdfInfo = pdfData.info || {};
 
   const lines = linesFromPagedText(rawText);
   const unmergedTables = parseLinesIntoTables(lines);
@@ -82,27 +137,6 @@ export async function extractTablesFromPDF(
     },
     tables
   };
-}
-
-async function renderPageWithMarker(pageData: any): Promise<string> {
-  const pageNumber = (pageData.pageIndex ?? 0) + 1;
-  const textContent = await pageData.getTextContent({
-    normalizeWhitespace: false,
-    disableCombineTextItems: false
-  });
-
-  let lastY: number | undefined;
-  let text = '';
-  for (const item of textContent.items) {
-    if (lastY === item.transform[5] || lastY === undefined) {
-      text += item.str;
-    } else {
-      text += `\n${item.str}`;
-    }
-    lastY = item.transform[5];
-  }
-
-  return `__PAGE_BREAK__${pageNumber}__\n${text}`;
 }
 
 function linesFromPagedText(rawText: string): PageLine[] {

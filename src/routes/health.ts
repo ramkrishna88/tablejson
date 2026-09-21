@@ -1,10 +1,11 @@
 import { FastifyInstance } from 'fastify';
 
 export async function healthRoutes(fastify: FastifyInstance) {
-  fastify.get('/v1/health', async () => {
+  fastify.get('/v1/health', async (_request, reply) => {
+    reply.header('Cache-Control', 'no-store');
     return {
       status: 'healthy',
-      service: 'PDF Table Extractor API',
+      service: 'TableJSON',
       version: '1.0.0',
       timestamp: new Date().toISOString(),
       uptime_seconds: process.uptime()
