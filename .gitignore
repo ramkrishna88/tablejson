@@ -1,10 +1,17 @@
 node_modules
 dist
-.env
-.env.*
-!.env.example
 .vercel
 *.log
 .DS_Store
 sample_12mb_large_report.pdf
 sample_enterprise_100k_ledger.pdf
+
+# secrets — never commit real keys
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+.zapierrc
+**/secrets.*
