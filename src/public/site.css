@@ -108,7 +108,9 @@ a.cta, a.cta-ghost {
   text-decoration: none;
   font-size: 0.92rem;
 }
+main.legal a.cta,
 a.cta { background: var(--accent-green); color: #04110b; }
+main.legal a.cta-ghost,
 a.cta-ghost { border: 1px solid var(--card-border); color: var(--text-main); }
 pre.sample {
   overflow-x: auto;
