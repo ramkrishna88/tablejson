@@ -7,7 +7,7 @@ module.exports = {
       required: true,
       type: 'password',
       helpText:
-        'Your TableJSON API key. Send as X-API-Key. Get a key at https://tablejson.com'
+        'Your TableJSON API key. Send as X-API-Key. Get a key from the [TableJSON homepage](https://tablejson.com/home).'
     }
   ],
   connectionLabel: '{{service}}',

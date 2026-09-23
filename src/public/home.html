@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1210860150241703" crossorigin="anonymous"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About — TableJSON</title>
-  <meta name="description" content="TableJSON extracts tables from text-layer PDFs into clean JSON. Playground, RapidAPI, and Zapier ready.">
+  <title>TableJSON — Extract PDF tables to JSON</title>
+  <meta name="description" content="TableJSON turns tables in text-layer PDFs into clean JSON. Use the playground, RapidAPI, Zapier, or a direct HTTP API.">
   <link rel="icon" href="/favicon.ico?v=2" sizes="any">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=2">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2">
@@ -25,27 +25,37 @@
       <div class="logo-text">TableJSON</div>
     </a>
     <nav class="header-links">
-      <a href="/home">Home</a>
+      <a class="on" href="/home">Home</a>
       <a href="/">Playground</a>
       <a href="/docs">Docs</a>
-      <a class="on" href="/about">About</a>
+      <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
   </header>
   <main class="legal">
-    <h2>About</h2>
-    <p>TableJSON turns tables in text-layer PDFs into clean JSON. Upload a file on the playground, or call the API from RapidAPI, Zapier, or your own HTTP client.</p>
-    <h3>What it does</h3>
+    <h2>PDF tables, returned as JSON</h2>
+    <p>TableJSON reads the text layer of a PDF, finds the tables, and returns headers, rows, and page numbers. Use it from the playground, RapidAPI, Zapier, or your own HTTP client.</p>
+    <div class="cta-row">
+      <a class="cta" href="/">Open playground</a>
+      <a class="cta-ghost" href="/docs">API reference</a>
+    </div>
+    <h3>What you get</h3>
     <ul>
-      <li>Reads the PDF text layer and finds tables</li>
-      <li>Returns headers, rows, and page numbers as JSON</li>
-      <li>Works on digital PDFs up to 500 MB</li>
+      <li>Structured tables with headers and row objects</li>
+      <li>Page start, page end, and total page count</li>
+      <li>Files up to 500 MB</li>
+      <li>No customer login — API keys are issued to callers</li>
     </ul>
     <p>It does not OCR scanned or image-only PDFs. Those files have no text layer to extract.</p>
-    <h3>How to use it</h3>
-    <p>The marketing site is <a href="/home">/home</a>. The playground is at <a href="/">tablejson.com</a>. API docs are at <a href="/docs">/docs</a> and <a href="/openapi.json">/openapi.json</a>. This product is separate from HidePDF Content, which hides sensitive values in PDFs.</p>
+    <h3>Ways to use it</h3>
+    <ul>
+      <li><a href="/">Playground</a> — upload a PDF in the browser, no key required</li>
+      <li><a href="/docs">API</a> — <code>POST /v1/extract-tables</code> with <code>X-API-Key</code></li>
+      <li>Zapier — connect a TableJSON key and extract tables in a Zap</li>
+    </ul>
+    <p>This product is separate from HidePDF Content, which hides sensitive values in PDFs. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>.</p>
   </main>
   <footer>
     <nav>

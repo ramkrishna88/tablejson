@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1210860150241703" crossorigin="anonymous"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>API Docs — TableJSON</title>
-  <meta name="description" content="TableJSON API docs: extract tables from text-layer PDFs into JSON. RapidAPI, Zapier, and playground.">
+  <title>API reference — TableJSON</title>
+  <meta name="description" content="TableJSON API reference: authenticate, then extract tables from text-layer PDFs. Endpoints, parameters, and example requests and responses.">
   <link rel="icon" href="/favicon.ico?v=2" sizes="any">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=2">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2">
@@ -20,11 +20,12 @@
 </head>
 <body>
   <header>
-    <a class="logo-container" href="/">
+    <a class="logo-container" href="/home">
       <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
       <div class="logo-text">TableJSON</div>
     </a>
     <nav class="header-links">
+      <a href="/home">Home</a>
       <a href="/">Playground</a>
       <a class="on" href="/docs">Docs</a>
       <a href="/about">About</a>
@@ -34,42 +35,87 @@
     </nav>
   </header>
   <main class="legal">
-    <h2>API documentation</h2>
-    <p>TableJSON extracts tables from text-layer PDFs and returns clean JSON. Use the <a href="/">playground</a>, RapidAPI, Zapier, or a direct HTTP call.</p>
+    <h2>API reference</h2>
+    <p>TableJSON extracts tables from text-layer PDFs and returns JSON. Base URL: <code>https://tablejson.com</code>. Machine-readable spec: <a href="/openapi.json">/openapi.json</a>.</p>
 
-    <h3>Fastest RapidAPI test</h3>
-    <ol>
-      <li>Open <strong>POST Example extract response</strong></li>
-      <li>Leave the JSON body as the mini PDF URL</li>
-      <li>Click <strong>Run</strong></li>
-      <li>Open <strong>Response</strong> — you should see a 2-row sample (<code>Hosting</code>, <code>Licenses</code>)</li>
-    </ol>
-    <p>That example does not parse the PDF, so Run stays fast. Full notes: <a href="/docs/example">example playground docs</a>.</p>
-
-    <h3>Live extract</h3>
-    <p>Use <code>POST /v1/extract-tables</code> for a real PDF.</p>
+    <h3>Authentication</h3>
+    <p>The <a href="/">playground</a> is same-origin and does not need a key. Direct API, RapidAPI, and Zapier calls do.</p>
     <ul>
-      <li>Multipart field <code>file</code> — upload a PDF</li>
-      <li>Or JSON body <code>{"file":"https://…"}</code> — public HTTPS URL</li>
+      <li>Direct API: send <code>X-API-Key: YOUR_KEY</code> or <code>Authorization: Bearer YOUR_KEY</code></li>
+      <li>RapidAPI: send only <code>X-RapidAPI-Key</code></li>
+      <li>Zapier: paste the same API key in the integration connection</li>
     </ul>
-    <p>Small test file: <a href="/sample-mini.pdf">sample-mini.pdf</a>. Larger sample: <a href="/sample.pdf">sample.pdf</a>.</p>
+    <p>Request a key at <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>. There is no customer login. Keys are issued to callers; the website itself does not require an account.</p>
 
-    <h3>Auth</h3>
+    <h3>GET /v1/health</h3>
+    <p>Confirms the API is up. No file and no key required.</p>
+<pre class="sample">curl https://tablejson.com/v1/health</pre>
+<pre class="sample">{
+  "status": "ok"
+}</pre>
+
+    <h3>GET or POST /v1/example</h3>
+    <p>Returns a tiny 2-row sample so testers can see the extract JSON shape without parsing a PDF. POST accepts a JSON body; the file URL is ignored. Details: <a href="/docs/example">example playground docs</a>.</p>
+<pre class="sample">curl -X POST https://tablejson.com/v1/example \
+  -H "Content-Type: application/json" \
+  -d '{"file":"https://tablejson.com/sample-mini.pdf"}'</pre>
+
+    <h3>POST /v1/extract-tables</h3>
+    <p>Live extract of every table in a text-layer PDF. Scanned or image-only PDFs are not supported.</p>
+    <p><strong>Parameters</strong></p>
     <ul>
-      <li>RapidAPI testers: send only <code>X-RapidAPI-Key</code></li>
-      <li>Direct callers: send <code>X-API-Key</code> or <code>Authorization: Bearer</code></li>
+      <li><code>file</code> (required) — multipart PDF upload, or JSON <code>{"file":"https://…"}</code> with a public HTTP(S) URL</li>
+    </ul>
+    <p>Small test file: <a href="/sample-mini.pdf">sample-mini.pdf</a>. Larger sample: <a href="/sample.pdf">sample.pdf</a>. Limit is 500 MB.</p>
+    <p><strong>Example request (URL)</strong></p>
+<pre class="sample">curl -X POST https://tablejson.com/v1/extract-tables \
+  -H "X-API-Key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"file":"https://tablejson.com/sample-mini.pdf"}'</pre>
+    <p><strong>Example request (upload)</strong></p>
+<pre class="sample">curl -X POST https://tablejson.com/v1/extract-tables \
+  -H "X-API-Key: YOUR_KEY" \
+  -F "file=@invoice.pdf"</pre>
+    <p><strong>Example response</strong></p>
+<pre class="sample">{
+  "status": "success",
+  "filename": "example.pdf",
+  "total_pages": 1,
+  "tables_found": 1,
+  "metadata": { "execution_time_ms": 12, "extraction_mode": "text" },
+  "tables": [
+    {
+      "table_id": 1,
+      "page_number": 1,
+      "page_end": 1,
+      "headers": ["date", "item", "amount"],
+      "total_rows": 2,
+      "rows": [
+        {
+          "row_index": 1,
+          "data": { "date": "2026-01-05", "item": "Hosting", "amount": "1250.00" },
+          "raw_cells": ["2026-01-05", "Hosting", "1250.00"]
+        }
+      ]
+    }
+  ]
+}</pre>
+
+    <h3>Errors</h3>
+    <ul>
+      <li><code>400</code> — missing file, not a PDF, empty file, or bad URL</li>
+      <li><code>401</code> — missing or invalid API key on protected routes</li>
+      <li><code>413</code> — file too large</li>
+      <li><code>429</code> — rate limited</li>
     </ul>
 
-    <h3>Endpoints</h3>
-    <ul>
-      <li><code>GET /v1/health</code> — API is up</li>
-      <li><code>POST /v1/example</code> — tiny 2-row sample, no PDF parse</li>
-      <li><code>POST /v1/extract-tables</code> — live table extract</li>
-    </ul>
-    <p>Machine-readable spec: <a href="/openapi.json">/openapi.json</a>. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>.</p>
+    <h3>Zapier</h3>
+    <p>The TableJSON Zapier action calls <code>POST /v1/extract-tables</code> with the connected API key. Use a text-layer PDF from a previous Zap step.</p>
+    <p>Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>.</p>
   </main>
   <footer>
     <nav>
+      <a href="/home">Home</a>
       <a href="/">Playground</a>
       <a href="/docs">Docs</a>
       <a href="/about">About</a>

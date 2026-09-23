@@ -134,7 +134,7 @@ await fastify.register(fastifyStatic, {
   }
 });
 
-const sitePages = ['about', 'privacy', 'contact', 'terms', 'docs'] as const;
+const sitePages = ['about', 'privacy', 'contact', 'terms', 'docs', 'home'] as const;
 for (const page of sitePages) {
   fastify.get(`/${page}`, async (_request, reply) => reply.sendFile(`${page}.html`));
 }
@@ -159,7 +159,7 @@ fastify.get('/openapi.json', async () => {
         email: 'hello@tablejson.com'
       },
       'x-category': 'Data',
-      'x-website': 'https://tablejson.com'
+      'x-website': 'https://tablejson.com/home'
     },
     servers: [
       {

@@ -12,7 +12,7 @@ module.exports = {
         label: 'PDF File',
         type: 'file',
         required: true,
-        helpText: 'A text-layer PDF. Scanned or image-only PDFs are not supported.'
+        helpText: 'A text-layer PDF. Scanned or image-only PDFs are not supported. See the [API docs](https://tablejson.com/docs).'
       }
     ],
     perform: async (z, bundle) => {

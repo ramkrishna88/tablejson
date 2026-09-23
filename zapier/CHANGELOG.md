@@ -1,3 +1,7 @@
+## 1.0.2
+
+Markdown links in user-facing help text. API docs live at https://tablejson.com/docs.
+
 ## 1.0.1
 
 Initial public release.
