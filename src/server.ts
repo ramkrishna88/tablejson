@@ -112,7 +112,7 @@ await fastify.register(fastifyStatic, {
   prefix: '/',
   dotfiles: 'allow',
   setHeaders(res, filePath) {
-    if (filePath.endsWith('.html')) {
+    if (filePath.endsWith('.html') || filePath.endsWith('.css')) {
       res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
       return;
     }
