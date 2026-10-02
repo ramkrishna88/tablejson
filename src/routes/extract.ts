@@ -2,7 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { requireExtractAuth } from '../lib/apiAuth.js';
 import { isNotMultipartError } from '../lib/errors.js';
-import { extractTablesFromPDF } from '../services/pdfExtractor.js';
+import { closeInvoice, failClose, workbookFromClose, xlsxBasename } from '../services/invoiceWorkbook.js';
+import { extractPdfModel, extractTablesFromPDF } from '../services/pdfExtractor.js';
 
 const MAX_DOWNLOAD_BYTES = 50 * 1024 * 1024;
 
@@ -105,6 +106,101 @@ async function rejectIfMissingSource(request: FastifyRequest, reply: FastifyRepl
   });
 }
 
+async function loadPdfFromRequest(request: FastifyRequest): Promise<{ buffer: Buffer; filename: string }> {
+  if (request.isMultipart()) {
+    const files = await request.saveRequestFiles();
+    const uploaded = files.find((file) => file.fieldname === 'file') ?? files[0];
+
+    if (!uploaded) {
+      throw Object.assign(new Error('Please upload a valid PDF file using multipart/form-data field name "file".'), {
+        statusCode: 400,
+        error_code: 'NO_FILE_UPLOADED'
+      });
+    }
+
+    const filename = uploaded.filename || 'uploaded.pdf';
+    if (uploaded.mimetype !== 'application/pdf' && !filename.toLowerCase().endsWith('.pdf')) {
+      throw Object.assign(new Error('Only PDF files (application/pdf) are supported.'), {
+        statusCode: 400,
+        error_code: 'INVALID_FILE_TYPE'
+      });
+    }
+
+    const buffer = await readFile(uploaded.filepath);
+    if (buffer.length === 0) {
+      throw Object.assign(new Error('Uploaded PDF file is empty.'), {
+        statusCode: 400,
+        error_code: 'EMPTY_FILE'
+      });
+    }
+    return { buffer, filename };
+  }
+
+  const fileUrl = fileUrlFromBody(request.body);
+  if (!fileUrl) {
+    throw Object.assign(new Error('Provide a public PDF URL in JSON field "file".'), {
+      statusCode: 400,
+      error_code: 'NO_FILE_UPLOADED'
+    });
+  }
+
+  const downloaded = await downloadPdfFromUrl(fileUrl);
+  if (!downloaded.filename.toLowerCase().endsWith('.pdf') && downloaded.buffer.subarray(0, 5).toString('utf8') !== '%PDF-') {
+    throw Object.assign(new Error('Only PDF files (application/pdf) are supported.'), {
+      statusCode: 400,
+      error_code: 'INVALID_FILE_TYPE'
+    });
+  }
+  return downloaded;
+}
+
+function sendPdfError(reply: FastifyReply, error: unknown) {
+  if (error && typeof error === 'object' && 'statusCode' in error && Number(error.statusCode) === 413) {
+    return reply.status(413).send({
+      status: 'error',
+      error_code: 'FILE_TOO_LARGE',
+      message: error instanceof Error ? error.message : 'The PDF is too large.'
+    });
+  }
+
+  if (error && typeof error === 'object' && 'error_code' in error && error.error_code === 'INVALID_PDF') {
+    return reply.status(400).send({
+      status: 'error',
+      error_code: 'INVALID_PDF',
+      message: error instanceof Error
+        ? `Could not read this PDF (${error.message}). Use a text-layer PDF, not a scanned image.`
+        : 'Could not read this PDF. Use a text-layer PDF, not a scanned image.'
+    });
+  }
+
+  if (error && typeof error === 'object' && 'error_code' in error && typeof error.error_code === 'string') {
+    const statusCode = 'statusCode' in error ? Number(error.statusCode) || 400 : 400;
+    return reply.status(statusCode).send({
+      status: 'error',
+      error_code: error.error_code,
+      message: error instanceof Error ? error.message : 'Could not read the PDF.'
+    });
+  }
+
+  if (error && typeof error === 'object' && 'statusCode' in error && Number(error.statusCode) === 400) {
+    return reply.status(400).send({
+      status: 'error',
+      error_code: 'DOWNLOAD_FAILED',
+      message: error instanceof Error ? error.message : 'Could not download the PDF URL.'
+    });
+  }
+
+  if (isNotMultipartError(error)) {
+    return reply.status(400).send({
+      status: 'error',
+      error_code: 'NOT_MULTIPART',
+      message: 'Send a PDF as multipart/form-data field "file", or JSON {"file":"https://example.com/file.pdf"}.'
+    });
+  }
+
+  return null;
+}
+
 export async function extractRoutes(fastify: FastifyInstance) {
   fastify.get('/v1/extract-tables', async (request: FastifyRequest, reply: FastifyReply) => {
     const accept = String(request.headers.accept || '');
@@ -133,103 +229,79 @@ export async function extractRoutes(fastify: FastifyInstance) {
     preHandler: [rejectIfMissingSource, requireExtractAuth]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      let buffer: Buffer;
-      let filename: string;
-
-      if (request.isMultipart()) {
-        const files = await request.saveRequestFiles();
-        const uploaded = files.find((file) => file.fieldname === 'file') ?? files[0];
-
-        if (!uploaded) {
-          return reply.status(400).send({
-            status: 'error',
-            error_code: 'NO_FILE_UPLOADED',
-            message: 'Please upload a valid PDF file using multipart/form-data field name "file".'
-          });
-        }
-
-        filename = uploaded.filename || 'uploaded.pdf';
-        if (uploaded.mimetype !== 'application/pdf' && !filename.toLowerCase().endsWith('.pdf')) {
-          return reply.status(400).send({
-            status: 'error',
-            error_code: 'INVALID_FILE_TYPE',
-            message: 'Only PDF files (application/pdf) are supported.'
-          });
-        }
-
-        buffer = await readFile(uploaded.filepath);
-      } else {
-        const fileUrl = fileUrlFromBody(request.body);
-        if (!fileUrl) {
-          return reply.status(400).send({
-            status: 'error',
-            error_code: 'NO_FILE_UPLOADED',
-            message: 'Provide a public PDF URL in JSON field "file".'
-          });
-        }
-
-        const downloaded = await downloadPdfFromUrl(fileUrl);
-        buffer = downloaded.buffer;
-        filename = downloaded.filename;
-        if (!filename.toLowerCase().endsWith('.pdf') && buffer.subarray(0, 5).toString('utf8') !== '%PDF-') {
-          return reply.status(400).send({
-            status: 'error',
-            error_code: 'INVALID_FILE_TYPE',
-            message: 'Only PDF files (application/pdf) are supported.'
-          });
-        }
-      }
-
-      if (buffer.length === 0) {
-        return reply.status(400).send({
-          status: 'error',
-          error_code: 'EMPTY_FILE',
-          message: 'Uploaded PDF file is empty.'
-        });
-      }
-
+      const { buffer, filename } = await loadPdfFromRequest(request);
       const extractionResult = await extractTablesFromPDF(buffer, filename);
       return reply.status(200).send(extractionResult);
     } catch (error: unknown) {
-      if (error && typeof error === 'object' && 'statusCode' in error && Number(error.statusCode) === 413) {
-        return reply.status(413).send({
-          status: 'error',
-          error_code: 'FILE_TOO_LARGE',
-          message: error instanceof Error ? error.message : 'The PDF is too large.'
-        });
+      const handled = sendPdfError(reply, error);
+      if (handled) {
+        return handled;
       }
-
-      if (error && typeof error === 'object' && 'error_code' in error && error.error_code === 'INVALID_PDF') {
-        return reply.status(400).send({
-          status: 'error',
-          error_code: 'INVALID_PDF',
-          message: error instanceof Error
-            ? `Could not read this PDF (${error.message}). Use a text-layer PDF, not a scanned image.`
-            : 'Could not read this PDF. Use a text-layer PDF, not a scanned image.'
-        });
-      }
-
-      if (error && typeof error === 'object' && 'statusCode' in error && Number(error.statusCode) === 400) {
-        return reply.status(400).send({
-          status: 'error',
-          error_code: 'DOWNLOAD_FAILED',
-          message: error instanceof Error ? error.message : 'Could not download the PDF URL.'
-        });
-      }
-
-      if (isNotMultipartError(error)) {
-        return reply.status(400).send({
-          status: 'error',
-          error_code: 'NOT_MULTIPART',
-          message: 'Send a PDF as multipart/form-data field "file", or JSON {"file":"https://example.com/file.pdf"}.'
-        });
-      }
-
       request.log.error(error);
       return reply.status(500).send({
         status: 'error',
         error_code: 'EXTRACTION_FAILED',
         message: 'An internal error occurred while processing the PDF file.'
+      });
+    }
+  });
+
+  fastify.get('/v1/invoice-xlsx', async (request: FastifyRequest, reply: FastifyReply) => {
+    const accept = String(request.headers.accept || '');
+    if (accept.includes('text/html')) {
+      return reply.redirect('/');
+    }
+
+    return reply.status(405).send({
+      status: 'error',
+      error_code: 'METHOD_NOT_ALLOWED',
+      message: 'This endpoint only accepts POST multipart/form-data with a PDF in the "file" field.',
+      playground: 'https://tablejson.com',
+      docs: 'https://tablejson.com/docs',
+      method: 'POST',
+      path: '/v1/invoice-xlsx'
+    });
+  });
+
+  fastify.post('/v1/invoice-xlsx', {
+    config: {
+      rateLimit: {
+        max: 20,
+        timeWindow: '1 minute'
+      }
+    },
+    preHandler: [rejectIfMissingSource, requireExtractAuth]
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { buffer, filename } = await loadPdfFromRequest(request);
+      let close;
+      try {
+        const model = await extractPdfModel(buffer, filename);
+        close = closeInvoice(model);
+      } catch (error: unknown) {
+        const safe = error instanceof Error ? error.message.replace(/\s+/g, ' ').slice(0, 180) : 'Could not read this PDF.';
+        close = failClose(`FAIL: extract error: ${safe}`);
+      }
+
+      const xlsx = await workbookFromClose(close);
+      const downloadName = `${xlsxBasename(filename)}.xlsx`;
+      return reply
+        .status(200)
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="${downloadName}"`)
+        .header('X-Invoice-Checksum', close.status)
+        .header('X-Invoice-Status', close.statusCopy)
+        .send(xlsx);
+    } catch (error: unknown) {
+      const handled = sendPdfError(reply, error);
+      if (handled) {
+        return handled;
+      }
+      request.log.error(error);
+      return reply.status(500).send({
+        status: 'error',
+        error_code: 'INVOICE_XLSX_FAILED',
+        message: 'An internal error occurred while building the invoice workbook.'
       });
     }
   });

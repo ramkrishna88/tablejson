@@ -8,6 +8,7 @@
     "build": "tsc && rm -rf dist/public && cp -r src/public dist/public",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
+    "test": "tsx --test src/services/invoiceWorkbook.test.ts",
     "test:sample": "tsx scripts/test-extraction.ts"
   },
   "keywords": [
@@ -30,6 +31,7 @@
     "@fastify/swagger-ui": "^3.0.0",
     "@types/pdfkit": "^0.17.6",
     "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
     "fastify": "^4.26.2",
     "pdf-parse": "^1.1.1",
     "pdf2json": "^3.1.3",

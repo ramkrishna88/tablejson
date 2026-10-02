@@ -20,6 +20,7 @@ This API reads the PDF text layer. It does **not** OCR scanned or image-only PDF
 | POST | `/v1/example` | No | Same example JSON, with body `{"file":"https://tablejson.com/sample-mini.pdf"}` |
 | GET | `/openapi.json` | No | OpenAPI 3 spec (RapidAPI import) |
 | POST | `/v1/extract-tables` | Yes | Upload a PDF, get tables as JSON |
+| POST | `/v1/invoice-xlsx` | Yes | Invoice PDF to a checksummed Excel workbook |
 
 Opening `/v1/extract-tables` in a browser redirects to the playground. Clients must **POST** a file.
 

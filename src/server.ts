@@ -278,6 +278,44 @@ fastify.get('/openapi.json', async () => {
           }
         }
       },
+      '/v1/invoice-xlsx': {
+        post: {
+          summary: 'Invoice PDF to checksummed Excel',
+          description: 'Upload a text-layer invoice PDF and download an .xlsx workbook. Line items, tax, and stated total are checked. FAIL still returns the file. Playground same-origin needs no key. Not on Zapier or RapidAPI yet.',
+          requestBody: {
+            required: true,
+            content: {
+              'multipart/form-data': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    file: { type: 'string', format: 'binary' }
+                  },
+                  required: ['file']
+                }
+              },
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    file: {
+                      type: 'string',
+                      format: 'uri',
+                      example: 'https://tablejson.com/sample-invoice.pdf'
+                    }
+                  },
+                  required: ['file']
+                }
+              }
+            }
+          },
+          responses: {
+            '200': {
+              description: 'Excel workbook with Invoice and Raw extract sheets'
+            }
+          }
+        }
+      },
       '/v1/example': {
         get: {
           summary: 'Example extract response',

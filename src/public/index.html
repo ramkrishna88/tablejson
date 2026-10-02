@@ -702,6 +702,18 @@
         <span id="btnText">Extract Tables to JSON</span>
       </button>
       <button class="btn-secondary" id="sampleBtn" type="button" style="margin-top: 0.75rem; width: 100%;">Try sample PDF (1 click)</button>
+
+      <div class="dropzone" id="invoiceDropzone" style="margin-top: 1.25rem; padding: 1.4rem 1rem;">
+        <div class="dropzone-icon" style="font-size: 1.7rem; margin-bottom: 0.5rem;">📊</div>
+        <div class="dropzone-text">
+          Invoice PDF → checksummed Excel. Drop here, or <strong>Browse invoice</strong>
+        </div>
+        <input type="file" id="invoiceFileInput" class="file-input" accept="application/pdf">
+      </div>
+      <button class="btn" id="invoiceBtn" type="button" disabled style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);">
+        <span id="invoiceBtnText">Download invoice Excel</span>
+      </button>
+      <button class="btn-secondary" id="sampleInvoiceBtn" type="button" style="margin-top: 0.75rem; width: 100%;">Try sample invoice</button>
     </div>
 
     <!-- Right Panel: Results & Collapsible Tree Viewer (sticky, full height) -->
@@ -781,6 +793,10 @@
     const fileSizeTag = document.getElementById('fileSizeTag');
     const extractBtn = document.getElementById('extractBtn');
     const btnText = document.getElementById('btnText');
+    const invoiceDropzone = document.getElementById('invoiceDropzone');
+    const invoiceFileInput = document.getElementById('invoiceFileInput');
+    const invoiceBtn = document.getElementById('invoiceBtn');
+    const invoiceBtnText = document.getElementById('invoiceBtnText');
     const progressContainer = document.getElementById('progressContainer');
     const progressBarFill = document.getElementById('progressBarFill');
     const progressPercent = document.getElementById('progressPercent');
@@ -835,6 +851,7 @@
 
       fileInfo.style.display = 'flex';
       extractBtn.disabled = false;
+      invoiceBtn.disabled = false;
       progressContainer.style.display = 'none';
     }
 
@@ -853,6 +870,94 @@
       } finally {
         sampleBtn.disabled = false;
         sampleBtn.textContent = 'Try sample PDF (1 click)';
+      }
+    });
+
+    invoiceDropzone.addEventListener('click', () => invoiceFileInput.click());
+    invoiceDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      invoiceDropzone.classList.add('dragover');
+    });
+    invoiceDropzone.addEventListener('dragleave', () => invoiceDropzone.classList.remove('dragover'));
+    invoiceDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      invoiceDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        handleFileSelect(e.dataTransfer.files[0]);
+        invoiceBtn.click();
+      }
+    });
+    invoiceFileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    function downloadInvoiceXlsx(file) {
+      invoiceBtn.disabled = true;
+      invoiceBtnText.innerHTML = '<span class="spinner"></span> Building Excel...';
+      document.getElementById('statusText').textContent = 'Building invoice workbook...';
+      const formData = new FormData();
+      formData.append('file', file);
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/v1/invoice-xlsx', true);
+      xhr.responseType = 'blob';
+      xhr.timeout = 180000;
+      xhr.onload = () => {
+        invoiceBtn.disabled = false;
+        invoiceBtnText.textContent = 'Download invoice Excel';
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const status = xhr.getResponseHeader('X-Invoice-Status') || xhr.getResponseHeader('X-Invoice-Checksum') || 'done';
+          const blob = xhr.response;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const base = (file.name || 'invoice.pdf').replace(/\.pdf$/i, '');
+          a.href = url;
+          a.download = `${base}.xlsx`;
+          a.click();
+          document.getElementById('statusText').textContent = status;
+          document.getElementById('jsonTreeContainer').innerHTML = `<div style="color: var(--accent-green);">Downloaded ${escapeHtml(base)}.xlsx — ${escapeHtml(status)}</div>`;
+        } else {
+          const reader = new FileReader();
+          reader.onload = () => {
+            let message = `Error ${xhr.status}`;
+            try {
+              message = JSON.parse(String(reader.result)).message || message;
+            } catch {}
+            document.getElementById('statusText').textContent = message;
+            document.getElementById('jsonTreeContainer').innerHTML = `<div style="color: var(--json-boolean);">${escapeHtml(message)}</div>`;
+          };
+          reader.readAsText(xhr.response);
+        }
+      };
+      xhr.onerror = () => {
+        invoiceBtn.disabled = false;
+        invoiceBtnText.textContent = 'Download invoice Excel';
+        document.getElementById('statusText').textContent = 'Network Error';
+      };
+      xhr.send(formData);
+    }
+
+    invoiceBtn.addEventListener('click', () => {
+      if (!selectedFile) return;
+      downloadInvoiceXlsx(selectedFile);
+    });
+
+    document.getElementById('sampleInvoiceBtn').addEventListener('click', async () => {
+      const sampleInvoiceBtn = document.getElementById('sampleInvoiceBtn');
+      sampleInvoiceBtn.disabled = true;
+      sampleInvoiceBtn.textContent = 'Loading invoice...';
+      try {
+        const res = await fetch('/sample-invoice.pdf', { cache: 'force-cache' });
+        if (!res.ok) throw new Error('Could not load sample invoice');
+        const blob = await res.blob();
+        handleFileSelect(new File([blob], 'sample-invoice.pdf', { type: 'application/pdf' }));
+        invoiceBtn.click();
+      } catch (err) {
+        alert(err.message || 'Could not load sample invoice');
+      } finally {
+        sampleInvoiceBtn.disabled = false;
+        sampleInvoiceBtn.textContent = 'Try sample invoice';
       }
     });
 

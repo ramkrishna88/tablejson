@@ -44,6 +44,7 @@
     <h3>What you get</h3>
     <ul>
       <li>Structured tables with headers and row objects</li>
+      <li>Invoice PDF to a checksummed Excel workbook on the playground</li>
       <li>Page start, page end, and total page count</li>
       <li>Files up to 500 MB</li>
       <li>No customer login — API keys are issued to callers</li>
@@ -51,7 +52,7 @@
     <p>It does not OCR scanned or image-only PDFs. Those files have no text layer to extract.</p>
     <h3>Ways to use it</h3>
     <ul>
-      <li><a href="/">Playground</a> — upload a PDF in the browser, no key required</li>
+      <li><a href="/">Playground</a> — upload a PDF in the browser, no key required. Extract JSON or download invoice Excel</li>
       <li><a href="/docs">API</a> — <code>POST /v1/extract-tables</code> with <code>X-API-Key</code></li>
       <li>Zapier — connect a TableJSON key and extract tables in a Zap</li>
     </ul>

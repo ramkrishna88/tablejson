@@ -30,6 +30,16 @@ export interface PDFExtractionResult {
   tables: ExtractedTable[];
 }
 
+export interface PdfModel {
+  filename: string;
+  totalPages: number;
+  rawText: string;
+  page1Lines: string[];
+  tables: ExtractedTable[];
+  executionTimeMs: number;
+  pdfInfo: Record<string, unknown>;
+}
+
 interface PageLine {
   page: number;
   text: string;
@@ -108,34 +118,45 @@ function parsePdfTextLayer(pdfBuffer: Buffer): Promise<{ text: string; numpages:
 /**
  * Text-layer PDF table extraction. Scanned/image-only PDFs are not OCR'd.
  */
+export async function extractPdfModel(
+  pdfBuffer: Buffer,
+  filename: string = 'uploaded.pdf'
+): Promise<PdfModel> {
+  const startTime = Date.now();
+  const pdfData = await withParseSlot(() => parsePdfTextLayer(pdfBuffer));
+  const rawText = pdfData.text || '';
+  const lines = linesFromPagedText(rawText);
+  const tables = mergeContiguousTables(parseLinesIntoTables(lines));
+
+  return {
+    filename,
+    totalPages: pdfData.numpages || 1,
+    rawText,
+    page1Lines: lines.filter((line) => line.page === 1).map((line) => line.text),
+    tables,
+    executionTimeMs: Date.now() - startTime,
+    pdfInfo: pdfData.info || {}
+  };
+}
+
 export async function extractTablesFromPDF(
   pdfBuffer: Buffer,
   filename: string = 'uploaded.pdf'
 ): Promise<PDFExtractionResult> {
-  const startTime = Date.now();
-
-  const pdfData = await withParseSlot(() => parsePdfTextLayer(pdfBuffer));
-
-  const totalPages = pdfData.numpages || 1;
-  const rawText = pdfData.text || '';
-  const pdfInfo = pdfData.info || {};
-
-  const lines = linesFromPagedText(rawText);
-  const unmergedTables = parseLinesIntoTables(lines);
-  const tables = mergeContiguousTables(unmergedTables);
+  const model = await extractPdfModel(pdfBuffer, filename);
 
   return {
     status: 'success',
-    filename,
-    total_pages: totalPages,
-    tables_found: tables.length,
+    filename: model.filename,
+    total_pages: model.totalPages,
+    tables_found: model.tables.length,
     metadata: {
       processed_at: new Date().toISOString(),
-      execution_time_ms: Date.now() - startTime,
+      execution_time_ms: model.executionTimeMs,
       extraction_mode: 'text',
-      pdf_info: pdfInfo
+      pdf_info: model.pdfInfo
     },
-    tables
+    tables: model.tables
   };
 }
 

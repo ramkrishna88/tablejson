@@ -101,6 +101,15 @@
   ]
 }</pre>
 
+    <h3>POST /v1/invoice-xlsx</h3>
+    <p>Turns a text-layer invoice PDF into a checksummed Excel workbook. Same playground auth as extract. Not on Zapier or RapidAPI yet.</p>
+    <p>Returns an <code>.xlsx</code> file. Sheet <code>Invoice</code> has vendor, invoice number, date, currency, line items, and a PASS/FAIL checksum. Sheet <code>Raw extract</code> keeps the original tables and page-1 lines. Scanned PDFs still download, with <code>FAIL: no text layer</code>.</p>
+<pre class="sample">curl -X POST https://tablejson.com/v1/invoice-xlsx \
+  -H "X-API-Key: YOUR_KEY" \
+  -F "file=@invoice.pdf" \
+  -o invoice.xlsx</pre>
+    <p>Playground: drop an invoice on the Excel zone, or use <a href="/sample-invoice.pdf">sample-invoice.pdf</a>.</p>
+
     <h3>Errors</h3>
     <ul>
       <li><code>400</code> — missing file, not a PDF, empty file, or bad URL</li>
