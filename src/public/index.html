@@ -361,6 +361,29 @@
       transform: none;
     }
 
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 0.65rem;
+    }
+
+    .btn-row .btn,
+    .btn-row .btn-secondary {
+      margin-top: 0;
+      width: 100%;
+      min-height: 42px;
+    }
+
+    .btn-invoice {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
+    }
+
+    .btn-invoice:hover {
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+    }
+
     .stats-bar {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -611,11 +634,11 @@
     .bottomsheet-content {
       background: #0f172a;
       border-top: 1px solid var(--accent-green);
-      border-radius: 20px 20px 0 0;
+      border-radius: 16px 16px 0 0;
       width: 100%;
-      height: 85vh;
+      height: 94vh;
       max-width: 1600px;
-      padding: 1.5rem;
+      padding: 0.85rem 1rem 1rem;
       display: flex;
       flex-direction: column;
       box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
@@ -638,6 +661,45 @@
       border-radius: 12px;
       padding: 1rem;
       border: 1px solid var(--card-border);
+      min-height: 0;
+    }
+
+    .bottomsheet-body.pdf-body {
+      padding: 0;
+      overflow: auto;
+      background: #111827;
+      height: calc(94vh - 4.75rem);
+    }
+
+    .pdf-pages {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .pdf-page {
+      max-width: 100%;
+      height: auto;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .pdf-loading {
+      color: var(--text-muted);
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .pdf-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: calc(94vh - 4.75rem);
+      border: 0;
+      background: #111827;
     }
 
     .close-btn {
@@ -734,9 +796,12 @@
             <span id="progressStatus">Uploading stream...</span>
           </div>
         </div>
-        <button class="btn" id="extractBtn" disabled>
-          <span id="btnText">Extract Tables to JSON</span>
-        </button>
+        <div class="btn-row">
+          <button class="btn-secondary" id="previewExtractBtn" type="button" disabled>Preview</button>
+          <button class="btn" id="extractBtn" type="button" disabled>
+            <span id="btnText">Extract</span>
+          </button>
+        </div>
         <button class="btn-secondary" id="sampleBtn" type="button" style="margin-top: 0.55rem; width: 100%;">Try sample PDF</button>
       </div>
 
@@ -748,7 +813,7 @@
         <div class="dropzone" id="invoiceDropzone">
           <div class="dropzone-icon">📊</div>
           <div class="dropzone-text">
-            Drop an invoice, or <strong>Browse</strong>
+            Drop a PDF, or <strong>Browse</strong>
           </div>
           <input type="file" id="invoiceFileInput" class="file-input" accept="application/pdf">
         </div>
@@ -759,10 +824,13 @@
           </div>
           <span style="font-size: 0.8rem; color: var(--accent-green);">Ready</span>
         </div>
-        <button class="btn" id="invoiceBtn" type="button" disabled style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);">
-          <span id="invoiceBtnText">Preview and download Excel</span>
-        </button>
-        <button class="btn-secondary" id="sampleInvoiceBtn" type="button" style="margin-top: 0.55rem; width: 100%;">Try sample invoice</button>
+        <div class="btn-row">
+          <button class="btn-secondary" id="previewInvoiceBtn" type="button" disabled>Preview</button>
+          <button class="btn btn-invoice" id="invoiceBtn" type="button" disabled>
+            <span id="invoiceBtnText">Extract</span>
+          </button>
+        </div>
+        <button class="btn-secondary" id="sampleInvoiceBtn" type="button" style="margin-top: 0.55rem; width: 100%;">Try sample PDF</button>
       </div>
     </div>
 
@@ -789,7 +857,7 @@
 
       <div class="controls-header">
         <div class="tabs">
-          <button class="tab-btn active" onclick="switchTab('invoice')">Invoice preview</button>
+          <button class="tab-btn active" onclick="switchTab('invoice')">Checksum</button>
           <button class="tab-btn" onclick="switchTab('json')">JSON</button>
           <button class="tab-btn" onclick="switchTab('table')">Table</button>
         </div>
@@ -825,22 +893,20 @@
     </div>
   </main>
 
-  <!-- BottomSheet Modal for Fullscreen Big Table Inspection -->
   <div class="bottomsheet-overlay" id="bottomSheet">
     <div class="bottomsheet-content">
       <div class="bottomsheet-header">
         <div>
-          <h3 style="color: var(--accent-green);">🔍 Fullscreen Wide Table Inspection</h3>
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Scroll horizontally & vertically to inspect all 50+ columns comfortably</span>
+          <h3 id="bottomSheetTitle" style="color: var(--accent-green);">Preview</h3>
+          <span id="bottomSheetSub" style="font-size: 0.8rem; color: var(--text-muted);">Fullscreen preview</span>
         </div>
-        <button class="close-btn" onclick="closeBottomSheet()">✕</button>
+        <button class="close-btn" type="button" onclick="closeBottomSheet()">✕</button>
       </div>
-      <div class="bottomsheet-body" id="modalTableContainer">
-        <!-- Rendered Fullscreen Table Here -->
-      </div>
+      <div class="bottomsheet-body" id="bottomSheetBody"></div>
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('fileInput');
@@ -849,10 +915,12 @@
     const fileSizeTag = document.getElementById('fileSizeTag');
     const extractBtn = document.getElementById('extractBtn');
     const btnText = document.getElementById('btnText');
+    const previewExtractBtn = document.getElementById('previewExtractBtn');
     const invoiceDropzone = document.getElementById('invoiceDropzone');
     const invoiceFileInput = document.getElementById('invoiceFileInput');
     const invoiceBtn = document.getElementById('invoiceBtn');
     const invoiceBtnText = document.getElementById('invoiceBtnText');
+    const previewInvoiceBtn = document.getElementById('previewInvoiceBtn');
     const progressContainer = document.getElementById('progressContainer');
     const progressBarFill = document.getElementById('progressBarFill');
     const progressPercent = document.getElementById('progressPercent');
@@ -864,6 +932,7 @@
     let lastInvoicePreview = null;
     let lastTableData = null;
     let currentTablePageIndex = 1;
+    let pdfPreviewUrl = null;
     const ROWS_PER_PAGE = 50;
 
     function resetResults(status = 'Working...') {
@@ -947,12 +1016,14 @@
         document.getElementById('invoiceFileSizeTag').textContent = `${sizeMB} MB`;
         document.getElementById('invoiceFileInfo').style.display = 'flex';
         invoiceBtn.disabled = false;
+        previewInvoiceBtn.disabled = false;
       } else {
         selectedFile = file;
         fileName.textContent = file.name;
         fileSizeTag.textContent = `${sizeMB} MB`;
         fileInfo.style.display = 'flex';
         extractBtn.disabled = false;
+        previewExtractBtn.disabled = false;
         progressContainer.style.display = 'none';
       }
     }
@@ -1033,7 +1104,7 @@
 
     async function downloadInvoiceXlsx(file) {
       invoiceBtn.disabled = true;
-      invoiceBtnText.innerHTML = '<span class="spinner"></span> Building Excel...';
+      invoiceBtnText.innerHTML = '<span class="spinner"></span> Extracting...';
       resetResults('Building invoice workbook...');
       const previewData = new FormData();
       previewData.append('file', file);
@@ -1069,7 +1140,7 @@
         switchTab('invoice');
       } finally {
         invoiceBtn.disabled = false;
-        invoiceBtnText.textContent = 'Preview and download Excel';
+        invoiceBtnText.textContent = 'Extract';
       }
     }
 
@@ -1081,7 +1152,7 @@
     document.getElementById('sampleInvoiceBtn').addEventListener('click', async () => {
       const sampleInvoiceBtn = document.getElementById('sampleInvoiceBtn');
       sampleInvoiceBtn.disabled = true;
-      sampleInvoiceBtn.textContent = 'Loading invoice...';
+      sampleInvoiceBtn.textContent = 'Loading sample...';
       try {
         const res = await fetch('/sample-invoice.pdf', { cache: 'force-cache' });
         if (!res.ok) throw new Error('Could not load sample invoice');
@@ -1092,7 +1163,7 @@
         alert(err.message || 'Could not load sample invoice');
       } finally {
         sampleInvoiceBtn.disabled = false;
-        sampleInvoiceBtn.textContent = 'Try sample invoice';
+        sampleInvoiceBtn.textContent = 'Try sample PDF';
       }
     });
 
@@ -1100,7 +1171,7 @@
       if (!selectedFile) return;
 
       extractBtn.disabled = true;
-      btnText.innerHTML = '<span class="spinner"></span> Extracting Tables...';
+      btnText.innerHTML = '<span class="spinner"></span> Extracting...';
       resetResults('Uploading & Extracting...');
       
       progressContainer.style.display = 'block';
@@ -1128,7 +1199,7 @@
 
       xhr.onload = () => {
         extractBtn.disabled = false;
-        btnText.textContent = 'Extract Tables to JSON';
+        btnText.textContent = 'Extract';
 
         // Immediately hide progress bar as soon as response arrives
         progressContainer.style.display = 'none';
@@ -1173,7 +1244,7 @@
 
       xhr.onerror = () => {
         extractBtn.disabled = false;
-        btnText.textContent = 'Extract Tables to JSON';
+        btnText.textContent = 'Extract';
         progressContainer.style.display = 'none';
         document.getElementById('statusText').textContent = 'Network Error';
         alert('Network upload error occurred.');
@@ -1181,7 +1252,7 @@
 
       xhr.ontimeout = () => {
         extractBtn.disabled = false;
-        btnText.textContent = 'Extract Tables to JSON';
+        btnText.textContent = 'Extract';
         progressContainer.style.display = 'none';
         document.getElementById('statusText').textContent = 'Timed out';
         alert('The request timed out. Try a smaller text-layer PDF.');
@@ -1389,19 +1460,93 @@
       currentTablePageIndex = newPage;
       if (lastTableData) {
         renderTableView(lastTableData, currentTablePageIndex, 'tableOutput');
-        renderTableView(lastTableData, currentTablePageIndex, 'modalTableContainer');
+        if (document.getElementById('bottomSheet').style.display === 'flex' && !pdfPreviewUrl) {
+          renderTableView(lastTableData, currentTablePageIndex, 'bottomSheetBody');
+        }
+      }
+    }
+
+    function showBottomSheet(title, subtitle) {
+      document.getElementById('bottomSheetTitle').textContent = title;
+      document.getElementById('bottomSheetSub').textContent = subtitle;
+      document.getElementById('bottomSheet').style.display = 'flex';
+    }
+
+    async function openPdfPreview(file) {
+      if (!file) return;
+      const body = document.getElementById('bottomSheetBody');
+      body.classList.add('pdf-body');
+      body.innerHTML = '<div class="pdf-pages"><div class="pdf-loading">Loading preview...</div></div>';
+      showBottomSheet('Preview', file.name);
+
+      try {
+        const pdfjsLib = window.pdfjsLib;
+        if (!pdfjsLib) throw new Error('PDF preview library missing');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+        const pagesEl = document.createElement('div');
+        pagesEl.className = 'pdf-pages';
+        const maxPages = Math.min(pdf.numPages, 20);
+        for (let i = 1; i <= maxPages; i++) {
+          const page = await pdf.getPage(i);
+          const unscaled = page.getViewport({ scale: 1 });
+          const width = Math.min(Math.max(body.clientWidth - 32, 320), 980);
+          const scale = width / unscaled.width;
+          const viewport = page.getViewport({ scale });
+          const canvas = document.createElement('canvas');
+          canvas.className = 'pdf-page';
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+          pagesEl.appendChild(canvas);
+        }
+        if (pdf.numPages > maxPages) {
+          const more = document.createElement('div');
+          more.className = 'pdf-loading';
+          more.textContent = `Showing first ${maxPages} of ${pdf.numPages} pages`;
+          pagesEl.appendChild(more);
+        }
+        body.innerHTML = '';
+        body.appendChild(pagesEl);
+      } catch (err) {
+        if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+        pdfPreviewUrl = URL.createObjectURL(file);
+        body.innerHTML = `<embed class="pdf-frame" type="application/pdf" src="${pdfPreviewUrl}#toolbar=1&navpanes=0" />`;
       }
     }
 
     function openBottomSheet() {
       if (!lastTableData) return;
-      document.getElementById('bottomSheet').style.display = 'flex';
-      renderTableView(lastTableData, currentTablePageIndex, 'modalTableContainer');
+      if (pdfPreviewUrl) {
+        URL.revokeObjectURL(pdfPreviewUrl);
+        pdfPreviewUrl = null;
+      }
+      const body = document.getElementById('bottomSheetBody');
+      body.classList.remove('pdf-body');
+      body.innerHTML = '';
+      showBottomSheet('Preview', 'Fullscreen table');
+      renderTableView(lastTableData, currentTablePageIndex, 'bottomSheetBody');
     }
 
     function closeBottomSheet() {
       document.getElementById('bottomSheet').style.display = 'none';
+      const body = document.getElementById('bottomSheetBody');
+      body.classList.remove('pdf-body');
+      body.innerHTML = '';
+      if (pdfPreviewUrl) {
+        URL.revokeObjectURL(pdfPreviewUrl);
+        pdfPreviewUrl = null;
+      }
     }
+
+    previewExtractBtn.addEventListener('click', () => openPdfPreview(selectedFile));
+    previewInvoiceBtn.addEventListener('click', () => openPdfPreview(invoiceFile));
+    document.getElementById('bottomSheet').addEventListener('click', (e) => {
+      if (e.target.id === 'bottomSheet') closeBottomSheet();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeBottomSheet();
+    });
 
     function copyJSON() {
       if (!lastResponseData) return;
