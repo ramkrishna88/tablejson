@@ -138,29 +138,36 @@
     }
 
     main {
-      max-width: 100%;
+      max-width: 1180px;
       width: 100%;
       margin: 1.5rem auto;
       padding: 0 1.5rem;
       flex: 1;
-      display: grid;
-      grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+      display: flex;
+      flex-direction: column;
       gap: 1.5rem;
-      align-items: start;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: stretch;
     }
 
     @media (max-width: 1100px) {
       main {
-        grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
         padding: 0 1rem;
       }
     }
 
     @media (max-width: 768px) {
       main {
-        grid-template-columns: 1fr;
         padding: 0 0.75rem;
         margin: 1rem auto;
+      }
+      .action-row {
+        grid-template-columns: 1fr;
       }
       header {
         padding: 1rem;
@@ -185,19 +192,47 @@
       overflow: visible;
     }
 
-    /* Right panel stretches to fill height */
     .panel-output {
-      height: calc(100vh - 140px);
-      min-height: 600px;
-      position: sticky;
-      top: 80px;
+      height: auto;
+      min-height: 420px;
+      position: static;
     }
 
+    .invoice-preview {
+      color: var(--text-main);
+    }
+
+    .invoice-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .invoice-meta div {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.7rem 0.8rem;
+    }
+
+    .invoice-meta dt {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .invoice-meta dd {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .checksum-pass { color: var(--accent-green); }
+    .checksum-fail { color: #fb7185; }
+
     @media (max-width: 768px) {
-      .panel-output {
-        height: auto;
-        min-height: 500px;
-        position: static;
+      .invoice-meta {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -665,61 +700,70 @@
   </header>
 
   <main>
-    <!-- Left Panel: File Upload -->
-    <div class="panel">
-      <div class="panel-header">
-        <span>Upload PDF Document</span>
-        <span style="font-size: 0.8rem; color: var(--accent-blue)">Stream Limit: 500MB</span>
+    <div class="action-row">
+      <div class="panel">
+        <div class="panel-header">
+          <span>Extract tables to JSON</span>
+          <span style="font-size: 0.8rem; color: var(--accent-blue)">500MB</span>
+        </div>
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone-icon">📄</div>
+          <div class="dropzone-text">
+            Drop a PDF, or <strong>Browse</strong>
+          </div>
+          <input type="file" id="fileInput" class="file-input" accept="application/pdf">
+        </div>
+        <div class="file-info" id="fileInfo">
+          <div>
+            <div class="file-name" id="fileName">sample.pdf</div>
+            <span class="file-size-tag" id="fileSizeTag">0 MB</span>
+          </div>
+          <span style="font-size: 0.8rem; color: var(--accent-green);">Ready</span>
+        </div>
+        <div class="progress-container" id="progressContainer">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressBarFill"></div>
+          </div>
+          <div class="progress-text">
+            <span id="progressPercent">0%</span>
+            <span id="progressStatus">Uploading stream...</span>
+          </div>
+        </div>
+        <button class="btn" id="extractBtn" disabled>
+          <span id="btnText">Extract Tables to JSON</span>
+        </button>
+        <button class="btn-secondary" id="sampleBtn" type="button" style="margin-top: 0.75rem; width: 100%;">Try sample PDF</button>
       </div>
 
-      <div class="dropzone" id="dropzone">
-        <div class="dropzone-icon">📄</div>
-        <div class="dropzone-text">
-          Drag & drop your PDF file here (small or large 10MB–500MB), or <strong>Browse File</strong>
+      <div class="panel">
+        <div class="panel-header">
+          <span>Invoice PDF to Excel</span>
+          <span style="font-size: 0.8rem; color: var(--accent-blue)">Checksum</span>
         </div>
-        <input type="file" id="fileInput" class="file-input" accept="application/pdf">
+        <div class="dropzone" id="invoiceDropzone">
+          <div class="dropzone-icon">📊</div>
+          <div class="dropzone-text">
+            Drop an invoice, or <strong>Browse</strong>
+          </div>
+          <input type="file" id="invoiceFileInput" class="file-input" accept="application/pdf">
+        </div>
+        <div class="file-info" id="invoiceFileInfo">
+          <div>
+            <div class="file-name" id="invoiceFileName">sample-invoice.pdf</div>
+            <span class="file-size-tag" id="invoiceFileSizeTag">0 MB</span>
+          </div>
+          <span style="font-size: 0.8rem; color: var(--accent-green);">Ready</span>
+        </div>
+        <button class="btn" id="invoiceBtn" type="button" disabled style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);">
+          <span id="invoiceBtnText">Preview and download Excel</span>
+        </button>
+        <button class="btn-secondary" id="sampleInvoiceBtn" type="button" style="margin-top: 0.75rem; width: 100%;">Try sample invoice</button>
       </div>
-
-      <div class="file-info" id="fileInfo">
-        <div>
-          <div class="file-name" id="fileName">sample_invoice.pdf</div>
-          <span class="file-size-tag" id="fileSizeTag">0 MB</span>
-        </div>
-        <span style="font-size: 0.8rem; color: var(--accent-green);">Ready</span>
-      </div>
-
-      <div class="progress-container" id="progressContainer">
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" id="progressBarFill"></div>
-        </div>
-        <div class="progress-text">
-          <span id="progressPercent">0%</span>
-          <span id="progressStatus">Uploading stream...</span>
-        </div>
-      </div>
-
-      <button class="btn" id="extractBtn" disabled>
-        <span id="btnText">Extract Tables to JSON</span>
-      </button>
-      <button class="btn-secondary" id="sampleBtn" type="button" style="margin-top: 0.75rem; width: 100%;">Try sample PDF (1 click)</button>
-
-      <div class="dropzone" id="invoiceDropzone" style="margin-top: 1.25rem; padding: 1.4rem 1rem;">
-        <div class="dropzone-icon" style="font-size: 1.7rem; margin-bottom: 0.5rem;">📊</div>
-        <div class="dropzone-text">
-          Invoice PDF → checksummed Excel. Drop here, or <strong>Browse invoice</strong>
-        </div>
-        <input type="file" id="invoiceFileInput" class="file-input" accept="application/pdf">
-      </div>
-      <button class="btn" id="invoiceBtn" type="button" disabled style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);">
-        <span id="invoiceBtnText">Download invoice Excel</span>
-      </button>
-      <button class="btn-secondary" id="sampleInvoiceBtn" type="button" style="margin-top: 0.75rem; width: 100%;">Try sample invoice</button>
     </div>
 
-    <!-- Right Panel: Results & Collapsible Tree Viewer (sticky, full height) -->
     <div class="panel panel-output" style="display: flex; flex-direction: column;">
       <div class="panel-header">
-        <span>Extraction Output</span>
+        <span>Results</span>
         <span style="font-size: 0.8rem; color: var(--text-muted)" id="statusText">Awaiting PDF...</span>
       </div>
 
@@ -740,8 +784,9 @@
 
       <div class="controls-header">
         <div class="tabs">
-          <button class="tab-btn active" onclick="switchTab('json')">JSON Response</button>
-          <button class="tab-btn" onclick="switchTab('table')">Rendered Table View</button>
+          <button class="tab-btn active" onclick="switchTab('invoice')">Invoice preview</button>
+          <button class="tab-btn" onclick="switchTab('json')">JSON</button>
+          <button class="tab-btn" onclick="switchTab('table')">Table</button>
         </div>
         <div class="tree-controls">
           <button class="mini-btn" id="expandModalBtn" onclick="openBottomSheet()" style="display: none;">🔍 Fullscreen</button>
@@ -750,9 +795,15 @@
         </div>
       </div>
 
-      <div class="output-container" id="jsonView">
+      <div class="output-container" id="invoiceView">
+        <div id="invoicePreview" class="invoice-preview" style="color: var(--text-muted);">
+          Drop a PDF above. Extract shows JSON here. Invoice Excel shows the checksum sheet here.
+        </div>
+      </div>
+
+      <div class="output-container" id="jsonView" style="display: none;">
         <div id="jsonTreeContainer" style="color: var(--text-muted);">
-          // Upload a PDF file on the left to extract structured tables into a collapsible JSON tree...
+          Extract a PDF to see the JSON tree.
         </div>
       </div>
 
@@ -803,7 +854,9 @@
     const progressStatus = document.getElementById('progressStatus');
 
     let selectedFile = null;
+    let invoiceFile = null;
     let lastResponseData = null;
+    let lastInvoicePreview = null;
     let currentTablePageIndex = 1;
     const ROWS_PER_PAGE = 50;
 
@@ -838,21 +891,26 @@
       }
     });
 
-    function handleFileSelect(file) {
+    function handleFileSelect(file, target = 'extract') {
       if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
         alert('Please select a valid PDF file.');
         return;
       }
-      selectedFile = file;
-      fileName.textContent = file.name;
-      
       const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      fileSizeTag.textContent = `${sizeMB} MB`;
-
-      fileInfo.style.display = 'flex';
-      extractBtn.disabled = false;
-      invoiceBtn.disabled = false;
-      progressContainer.style.display = 'none';
+      if (target === 'invoice') {
+        invoiceFile = file;
+        document.getElementById('invoiceFileName').textContent = file.name;
+        document.getElementById('invoiceFileSizeTag').textContent = `${sizeMB} MB`;
+        document.getElementById('invoiceFileInfo').style.display = 'flex';
+        invoiceBtn.disabled = false;
+      } else {
+        selectedFile = file;
+        fileName.textContent = file.name;
+        fileSizeTag.textContent = `${sizeMB} MB`;
+        fileInfo.style.display = 'flex';
+        extractBtn.disabled = false;
+        progressContainer.style.display = 'none';
+      }
     }
 
     document.getElementById('sampleBtn').addEventListener('click', async () => {
@@ -883,64 +941,94 @@
       e.preventDefault();
       invoiceDropzone.classList.remove('dragover');
       if (e.dataTransfer.files.length) {
-        handleFileSelect(e.dataTransfer.files[0]);
+        handleFileSelect(e.dataTransfer.files[0], 'invoice');
         invoiceBtn.click();
       }
     });
     invoiceFileInput.addEventListener('change', (e) => {
       if (e.target.files.length) {
-        handleFileSelect(e.target.files[0]);
+        handleFileSelect(e.target.files[0], 'invoice');
       }
     });
 
-    function downloadInvoiceXlsx(file) {
+    function renderInvoicePreview(data) {
+      lastInvoicePreview = data;
+      const pass = data.checksum === 'PASS';
+      const lines = Array.isArray(data.lines) ? data.lines : [];
+      const rows = lines.map((line) => `
+        <tr>
+          <td>${escapeHtml(line.description)}</td>
+          <td>${escapeHtml(line.qty)}</td>
+          <td>${escapeHtml(line.unit_price)}</td>
+          <td>${escapeHtml(line.amount)}</td>
+          <td class="${line.line_check === 'PASS' ? 'checksum-pass' : 'checksum-fail'}">${escapeHtml(line.line_check)}</td>
+        </tr>
+      `).join('');
+      document.getElementById('statTables').textContent = String(lines.length);
+      document.getElementById('statRows').textContent = String(lines.length);
+      document.getElementById('invoicePreview').innerHTML = `
+        <dl class="invoice-meta">
+          <div><dt>Vendor</dt><dd>${escapeHtml(data.vendor || '—')}</dd></div>
+          <div><dt>Invoice number</dt><dd>${escapeHtml(data.invoice_number || '—')}</dd></div>
+          <div><dt>Date</dt><dd>${escapeHtml(data.date || '—')}</dd></div>
+          <div><dt>Currency</dt><dd>${escapeHtml(data.currency || '—')}</dd></div>
+          <div><dt>Stated total</dt><dd>${escapeHtml(data.stated_total || '—')}</dd></div>
+          <div><dt>Checksum</dt><dd class="${pass ? 'checksum-pass' : 'checksum-fail'}">${escapeHtml(data.checksum_copy || data.checksum)}</dd></div>
+        </dl>
+        <div class="table-wrapper">
+          <table class="rendered-table">
+            <thead><tr><th>description</th><th>qty</th><th>unit_price</th><th>amount</th><th>line_check</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="5">No line items mapped.</td></tr>'}</tbody>
+          </table>
+        </div>
+        <p style="margin-top: 0.9rem; color: var(--text-muted); font-size: 0.85rem;">
+          Expected ${escapeHtml(data.expected_total || '—')} · remainder ${escapeHtml(data.remainder || '—')} · tax ${escapeHtml(data.tax || '—')} · shipping ${escapeHtml(data.shipping || '—')}
+        </p>
+      `;
+    }
+
+    async function downloadInvoiceXlsx(file) {
       invoiceBtn.disabled = true;
       invoiceBtnText.innerHTML = '<span class="spinner"></span> Building Excel...';
       document.getElementById('statusText').textContent = 'Building invoice workbook...';
-      const formData = new FormData();
-      formData.append('file', file);
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/v1/invoice-xlsx', true);
-      xhr.responseType = 'blob';
-      xhr.timeout = 180000;
-      xhr.onload = () => {
-        invoiceBtn.disabled = false;
-        invoiceBtnText.textContent = 'Download invoice Excel';
-        if (xhr.status >= 200 && xhr.status < 300) {
-          const status = xhr.getResponseHeader('X-Invoice-Status') || xhr.getResponseHeader('X-Invoice-Checksum') || 'done';
-          const blob = xhr.response;
+      const previewData = new FormData();
+      previewData.append('file', file);
+      const fileData = new FormData();
+      fileData.append('file', file);
+      try {
+        const previewRes = await fetch('/v1/invoice-xlsx?format=json', { method: 'POST', body: previewData });
+        const preview = await previewRes.json();
+        if (!previewRes.ok) {
+          throw new Error(preview.message || `Error ${previewRes.status}`);
+        }
+        renderInvoicePreview(preview);
+        switchTab('invoice');
+        document.getElementById('statusText').textContent = preview.checksum_copy || preview.checksum;
+        lastResponseData = preview;
+        renderJSONTree(preview);
+
+        const fileRes = await fetch('/v1/invoice-xlsx', { method: 'POST', body: fileData });
+        if (fileRes.ok) {
+          const blob = await fileRes.blob();
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
-          const base = (file.name || 'invoice.pdf').replace(/\.pdf$/i, '');
           a.href = url;
-          a.download = `${base}.xlsx`;
+          a.download = `${(file.name || 'invoice.pdf').replace(/\.pdf$/i, '')}.xlsx`;
           a.click();
-          document.getElementById('statusText').textContent = status;
-          document.getElementById('jsonTreeContainer').innerHTML = `<div style="color: var(--accent-green);">Downloaded ${escapeHtml(base)}.xlsx — ${escapeHtml(status)}</div>`;
-        } else {
-          const reader = new FileReader();
-          reader.onload = () => {
-            let message = `Error ${xhr.status}`;
-            try {
-              message = JSON.parse(String(reader.result)).message || message;
-            } catch {}
-            document.getElementById('statusText').textContent = message;
-            document.getElementById('jsonTreeContainer').innerHTML = `<div style="color: var(--json-boolean);">${escapeHtml(message)}</div>`;
-          };
-          reader.readAsText(xhr.response);
         }
-      };
-      xhr.onerror = () => {
+      } catch (err) {
+        document.getElementById('statusText').textContent = err.message || 'Invoice failed';
+        document.getElementById('invoicePreview').innerHTML = `<div class="checksum-fail">${escapeHtml(err.message || 'Invoice failed')}</div>`;
+        switchTab('invoice');
+      } finally {
         invoiceBtn.disabled = false;
-        invoiceBtnText.textContent = 'Download invoice Excel';
-        document.getElementById('statusText').textContent = 'Network Error';
-      };
-      xhr.send(formData);
+        invoiceBtnText.textContent = 'Preview and download Excel';
+      }
     }
 
     invoiceBtn.addEventListener('click', () => {
-      if (!selectedFile) return;
-      downloadInvoiceXlsx(selectedFile);
+      if (!invoiceFile) return;
+      downloadInvoiceXlsx(invoiceFile);
     });
 
     document.getElementById('sampleInvoiceBtn').addEventListener('click', async () => {
@@ -951,7 +1039,7 @@
         const res = await fetch('/sample-invoice.pdf', { cache: 'force-cache' });
         if (!res.ok) throw new Error('Could not load sample invoice');
         const blob = await res.blob();
-        handleFileSelect(new File([blob], 'sample-invoice.pdf', { type: 'application/pdf' }));
+        handleFileSelect(new File([blob], 'sample-invoice.pdf', { type: 'application/pdf' }), 'invoice');
         invoiceBtn.click();
       } catch (err) {
         alert(err.message || 'Could not load sample invoice');
@@ -1019,6 +1107,7 @@
             }, 10);
 
             document.getElementById('statusText').textContent = `Success (${xhr.status} OK)`;
+            switchTab('json');
             document.getElementById('expandAllBtn').style.display = 'inline-block';
             document.getElementById('collapseAllBtn').style.display = 'inline-block';
             document.getElementById('expandModalBtn').style.display = 'inline-block';
@@ -1054,15 +1143,11 @@
 
     function switchTab(tab) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      if (tab === 'json') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        document.getElementById('jsonView').style.display = 'block';
-        document.getElementById('tableView').style.display = 'none';
-      } else {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        document.getElementById('jsonView').style.display = 'none';
-        document.getElementById('tableView').style.display = 'block';
-      }
+      document.getElementById('invoiceView').style.display = tab === 'invoice' ? 'block' : 'none';
+      document.getElementById('jsonView').style.display = tab === 'json' ? 'block' : 'none';
+      document.getElementById('tableView').style.display = tab === 'table' ? 'block' : 'none';
+      const index = tab === 'invoice' ? 0 : tab === 'json' ? 1 : 2;
+      document.querySelectorAll('.tab-btn')[index].classList.add('active');
     }
 
     // --- Interactive Collapsible JSON Tree Builder ---

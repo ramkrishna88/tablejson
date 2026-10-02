@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { requireExtractAuth } from '../lib/apiAuth.js';
 import { isNotMultipartError } from '../lib/errors.js';
-import { closeInvoice, failClose, workbookFromClose, xlsxBasename } from '../services/invoiceWorkbook.js';
+import { closeInvoice, failClose, invoicePreview, workbookFromClose, xlsxBasename } from '../services/invoiceWorkbook.js';
 import { extractPdfModel, extractTablesFromPDF } from '../services/pdfExtractor.js';
 
 const MAX_DOWNLOAD_BYTES = 50 * 1024 * 1024;
@@ -281,6 +281,16 @@ export async function extractRoutes(fastify: FastifyInstance) {
       } catch (error: unknown) {
         const safe = error instanceof Error ? error.message.replace(/\s+/g, ' ').slice(0, 180) : 'Could not read this PDF.';
         close = failClose(`FAIL: extract error: ${safe}`);
+      }
+
+      const wantsJson = String(request.headers.accept || '').includes('application/json')
+        || String((request.query as { format?: string }).format || '') === 'json';
+      if (wantsJson) {
+        return reply
+          .status(200)
+          .header('X-Invoice-Checksum', close.status)
+          .header('X-Invoice-Status', close.statusCopy)
+          .send(invoicePreview(close));
       }
 
       const xlsx = await workbookFromClose(close);

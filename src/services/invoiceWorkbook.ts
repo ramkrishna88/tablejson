@@ -216,7 +216,7 @@ export function parseQty(raw: string): number | null {
   return minor / 100;
 }
 
-function formatMinor(minor: number | null, exponent: number): string {
+export function formatMinor(minor: number | null, exponent: number): string {
   if (minor == null) {
     return '';
   }
@@ -640,6 +640,32 @@ export async function workbookFromClose(close: InvoiceClose): Promise<Buffer> {
 
   const buffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(buffer);
+}
+
+export function invoicePreview(close: InvoiceClose) {
+  const money = (minor: number | null) => formatMinor(minor, close.exponent);
+  return {
+    status: close.status === 'PASS' ? 'success' : 'fail',
+    checksum: close.status,
+    checksum_copy: close.statusCopy,
+    vendor: close.vendor,
+    invoice_number: close.invoiceNumber,
+    date: close.date,
+    currency: close.currency,
+    stated_total: money(close.statedTotalMinor),
+    expected_total: money(close.expectedTotalMinor),
+    remainder: money(close.remainderMinor),
+    shipping: money(close.shippingMinor),
+    tax: money(close.taxMinor),
+    discount: money(close.signedDiscountMinor),
+    lines: close.lines.map((line) => ({
+      description: line.description,
+      qty: line.qty,
+      unit_price: line.unitPrice,
+      amount: line.amount,
+      line_check: line.lineCheck
+    }))
+  };
 }
 
 export function xlsxBasename(filename: string): string {

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   closeInvoice,
   detectCurrency,
+  invoicePreview,
   normalizeKey,
   parseMoneyToMinor,
   workbookFromClose
@@ -144,6 +145,23 @@ test('line check fails when qty * rate != amount', () => {
     )]
   }));
   assert.equal(result.lines[0].lineCheck, 'FAIL');
+});
+
+test('invoice preview JSON includes checksum and lines', () => {
+  const result = closeInvoice(model({
+    page1Lines: ['Invoice No: INV-1001'],
+    tables: [table(
+      ['description', 'qty', 'unit_price', 'amount'],
+      [
+        ['Hosting', '1', '10.00', '10.00'],
+        ['Total', '-', '-', 'USD 10.00']
+      ]
+    )]
+  }));
+  const preview = invoicePreview(result);
+  assert.equal(preview.checksum, 'PASS');
+  assert.equal(preview.lines.length, 1);
+  assert.equal(preview.stated_total, '10.00');
 });
 
 test('workbook always has Invoice and Raw extract sheets', async () => {
