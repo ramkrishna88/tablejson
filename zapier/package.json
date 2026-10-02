@@ -1,7 +1,7 @@
 {
   "name": "tablejson-zapier",
-  "version": "1.0.2",
-  "description": "Extract tables from PDFs into JSON with TableJSON.",
+  "version": "1.0.3",
+  "description": "Extract tables from PDFs into JSON, or close invoices to checksummed Excel.",
   "main": "index.js",
   "scripts": {
     "test": "zapier test"

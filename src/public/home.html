@@ -44,7 +44,7 @@
     <h3>What you get</h3>
     <ul>
       <li>Structured tables with headers and row objects</li>
-      <li>Invoice PDF to a checksummed Excel workbook on the playground</li>
+      <li>Invoice PDF to a checksummed Excel workbook</li>
       <li>Page start, page end, and total page count</li>
       <li>Files up to 500 MB</li>
       <li>No customer login — API keys are issued to callers</li>
@@ -53,8 +53,9 @@
     <h3>Ways to use it</h3>
     <ul>
       <li><a href="/">Playground</a> — upload a PDF in the browser, no key required. Extract JSON or download invoice Excel</li>
-      <li><a href="/docs">API</a> — <code>POST /v1/extract-tables</code> with <code>X-API-Key</code></li>
-      <li>Zapier — connect a TableJSON key and extract tables in a Zap</li>
+      <li><a href="/docs">API</a> — <code>POST /v1/extract-tables</code> or <code>POST /v1/invoice-xlsx</code> with <code>X-API-Key</code></li>
+      <li>Zapier — extract tables or close an invoice to Excel</li>
+      <li>RapidAPI — same two routes after you re-import <a href="/openapi.json">openapi.json</a></li>
     </ul>
     <p>This product is separate from HidePDF Content, which hides sensitive values in PDFs. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>.</p>
   </main>

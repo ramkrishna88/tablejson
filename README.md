@@ -113,7 +113,7 @@ API_KEY=change-me
 6. Security: RapidAPI gateway headers. On Railway, set `RAPIDAPI_PROXY_SECRET` to the secret RapidAPI shows you.
 7. Suggested plans: Basic (free, 100 calls/month), Pro `$19/mo` (500,000 calls)
 
-RapidAPI Hub testers should run **GET /v1/example** or **GET /v1/health** first. Those are small sample responses and will not freeze Chrome. A live extract still returns every row.
+RapidAPI Hub testers should run **GET /v1/example** or **GET /v1/invoice-example** first. Those are small sample responses and will not freeze Chrome. Re-import [openapi.json](https://tablejson.com/openapi.json) in RapidAPI Studio to add invoice Excel.
 
 Short Hub description:
 
@@ -121,13 +121,13 @@ Short Hub description:
 
 ## Zapier
 
-The Zapier app **TableJSON** is registered and pushed (version 1.0.1). It is intended as a public directory app. Zapier still requires live Zaps and review before it appears in search.
+The Zapier app **TableJSON** is registered and pushed (version 1.0.3). Actions: Extract Tables From PDF, Invoice PDF to Excel.
 
 Invite testers now: https://zapier.com/developer/public-invite/246538/82421bacbfa80fcb07b5cf70c00f4e06/
 
 Until the directory listing is approved, anyone can also use **Webhooks by Zapier**:
 
-- URL: `https://tablejson.com/v1/extract-tables`
+- URL: `https://tablejson.com/v1/extract-tables` or `https://tablejson.com/v1/invoice-xlsx`
 - Method: POST
 - Header: `X-API-Key`
 - Body: multipart field `file`

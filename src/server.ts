@@ -281,7 +281,20 @@ fastify.get('/openapi.json', async () => {
       '/v1/invoice-xlsx': {
         post: {
           summary: 'Invoice PDF to checksummed Excel',
-          description: 'Upload a text-layer invoice PDF and download an .xlsx workbook. Line items, tax, and stated total are checked. FAIL still returns the file. Playground same-origin needs no key. Not on Zapier or RapidAPI yet.',
+          description: 'Upload a text-layer invoice PDF. Default response is an .xlsx workbook. Add ?format=json for the checksum preview (vendor, invoice number, totals, line checks). FAIL still returns the file. RapidAPI Hub testers should run GET /v1/invoice-example first. Sample: https://tablejson.com/sample-invoice.pdf',
+          security: [],
+          parameters: [
+            {
+              name: 'format',
+              in: 'query',
+              required: false,
+              schema: {
+                type: 'string',
+                enum: ['json', 'xlsx']
+              },
+              description: 'json returns the checksum preview. Omit or xlsx downloads the workbook.'
+            }
+          ],
           requestBody: {
             required: true,
             content: {
@@ -305,13 +318,59 @@ fastify.get('/openapi.json', async () => {
                     }
                   },
                   required: ['file']
+                },
+                example: {
+                  file: 'https://tablejson.com/sample-invoice.pdf'
                 }
               }
             }
           },
           responses: {
             '200': {
-              description: 'Excel workbook with Invoice and Raw extract sheets'
+              description: 'Excel workbook, or JSON preview when format=json'
+            }
+          }
+        }
+      },
+      '/v1/invoice-example': {
+        get: {
+          summary: 'Example invoice checksum JSON',
+          description: 'Returns a tiny invoice checksum sample so RapidAPI Hub testers can click Run without downloading Excel. Prefer this before POST /v1/invoice-xlsx.',
+          security: [],
+          responses: {
+            '200': {
+              description: 'Static invoice checksum JSON'
+            }
+          }
+        },
+        post: {
+          summary: 'Example invoice checksum JSON',
+          description: 'Same canned invoice checksum as GET /v1/invoice-example. The body is ignored so Hub Run stays fast.',
+          security: [],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    file: {
+                      type: 'string',
+                      format: 'uri',
+                      example: 'https://tablejson.com/sample-invoice.pdf'
+                    }
+                  },
+                  required: ['file']
+                },
+                example: {
+                  file: 'https://tablejson.com/sample-invoice.pdf'
+                }
+              }
+            }
+          },
+          responses: {
+            '200': {
+              description: 'Static invoice checksum JSON'
             }
           }
         }

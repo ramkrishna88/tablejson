@@ -102,13 +102,13 @@
 }</pre>
 
     <h3>POST /v1/invoice-xlsx</h3>
-    <p>Turns a text-layer invoice PDF into a checksummed Excel workbook. Same playground auth as extract. Not on Zapier or RapidAPI yet.</p>
-    <p>Returns an <code>.xlsx</code> file. Sheet <code>Invoice</code> has vendor, invoice number, date, currency, line items, and a PASS/FAIL checksum. Sheet <code>Raw extract</code> keeps the original tables and page-1 lines. Scanned PDFs still download, with <code>FAIL: no text layer</code>.</p>
+    <p>Turns a text-layer invoice PDF into a checksummed Excel workbook. Same auth as extract. Zapier action: Invoice PDF to Excel. RapidAPI: import <a href="/openapi.json">openapi.json</a> and add this route, or run <code>GET /v1/invoice-example</code> in the Hub first.</p>
+    <p>Returns an <code>.xlsx</code> file. Add <code>?format=json</code> for the checksum preview. Sheet <code>Invoice</code> has vendor, invoice number, date, currency, line items, and a PASS/FAIL checksum. Scanned PDFs still download, with <code>FAIL: no text layer</code>.</p>
 <pre class="sample">curl -X POST https://tablejson.com/v1/invoice-xlsx \
   -H "X-API-Key: YOUR_KEY" \
   -F "file=@invoice.pdf" \
   -o invoice.xlsx</pre>
-    <p>Playground: drop an invoice on the Excel zone, or use <a href="/sample-invoice.pdf">sample-invoice.pdf</a>.</p>
+    <p>Playground: Preview then Extract on the invoice card, or use <a href="/sample-invoice.pdf">sample-invoice.pdf</a>.</p>
 
     <h3>Errors</h3>
     <ul>
@@ -119,7 +119,7 @@
     </ul>
 
     <h3>Zapier</h3>
-    <p>The TableJSON Zapier action calls <code>POST /v1/extract-tables</code> with the connected API key. Use a text-layer PDF from a previous Zap step.</p>
+    <p>TableJSON has two actions: Extract Tables From PDF (<code>POST /v1/extract-tables</code>) and Invoice PDF to Excel (<code>POST /v1/invoice-xlsx</code>). Connect a TableJSON API key. Use a text-layer PDF from a previous Zap step.</p>
     <p>Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>.</p>
   </main>
   <footer>

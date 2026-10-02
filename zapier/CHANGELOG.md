@@ -1,3 +1,7 @@
+## 1.0.3
+
+New action: Invoice PDF to Excel (`create/invoice_xlsx`). Returns checksum fields plus an `.xlsx` file.
+
 ## 1.0.2
 
 Markdown links in user-facing help text. API docs live at https://tablejson.com/docs.

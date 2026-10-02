@@ -6,6 +6,8 @@ dist
 sample_12mb_large_report.pdf
 sample_enterprise_100k_ledger.pdf
 
+zapier/build
+
 # secrets — never commit real keys
 .env
 .env.*
