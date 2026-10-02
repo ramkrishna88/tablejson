@@ -649,9 +649,29 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
-      padding-bottom: 0.75rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.65rem;
       border-bottom: 1px solid var(--card-border);
+      gap: 0.75rem;
+    }
+
+    .pdf-toolbar {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      margin-left: auto;
+    }
+
+    .pdf-toolbar.is-on {
+      display: flex;
+    }
+
+    .pdf-zoom-label {
+      min-width: 3.2rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
     }
 
     .bottomsheet-body {
@@ -667,7 +687,9 @@
     .bottomsheet-body.pdf-body {
       padding: 0;
       overflow: auto;
-      background: #111827;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.08), transparent 42%),
+        #0b1220;
       height: calc(94vh - 4.75rem);
     }
 
@@ -675,16 +697,30 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 1rem;
-      padding: 1rem;
+      gap: 1.25rem;
+      padding: 1.5rem 1rem 2rem;
+    }
+
+    .pdf-page-wrap {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+      padding: 1.25rem 1.4rem;
+      width: min(var(--pdf-card, 680px), calc(100% - 1.5rem));
     }
 
     .pdf-page {
-      max-width: 100%;
+      display: block;
+      width: 100%;
       height: auto;
       background: #fff;
-      border-radius: 6px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .pdf-page-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 0.15rem;
     }
 
     .pdf-loading {
@@ -900,6 +936,11 @@
           <h3 id="bottomSheetTitle" style="color: var(--accent-green);">Preview</h3>
           <span id="bottomSheetSub" style="font-size: 0.8rem; color: var(--text-muted);">Fullscreen preview</span>
         </div>
+        <div class="pdf-toolbar" id="pdfToolbar">
+          <button class="mini-btn" id="pdfZoomOut" type="button">−</button>
+          <span class="pdf-zoom-label" id="pdfZoomLabel">Fit</span>
+          <button class="mini-btn" id="pdfZoomIn" type="button">+</button>
+        </div>
         <button class="close-btn" type="button" onclick="closeBottomSheet()">✕</button>
       </div>
       <div class="bottomsheet-body" id="bottomSheetBody"></div>
@@ -933,6 +974,8 @@
     let lastTableData = null;
     let currentTablePageIndex = 1;
     let pdfPreviewUrl = null;
+    let pdfPreviewZoom = 1;
+    const PDF_ZOOM_STEPS = [0.85, 1, 1.2, 1.45];
     const ROWS_PER_PAGE = 50;
 
     function resetResults(status = 'Working...') {
@@ -1472,11 +1515,57 @@
       document.getElementById('bottomSheet').style.display = 'flex';
     }
 
+    function cropCanvasWhitespace(source) {
+      const ctx = source.getContext('2d', { willReadFrequently: true });
+      const { width, height } = source;
+      const { data } = ctx.getImageData(0, 0, width, height);
+      let minX = width;
+      let minY = height;
+      let maxX = 0;
+      let maxY = 0;
+      for (let y = 0; y < height; y += 2) {
+        for (let x = 0; x < width; x += 2) {
+          const i = (y * width + x) * 4;
+          if (data[i] < 248 || data[i + 1] < 248 || data[i + 2] < 248) {
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+      if (maxX <= minX || maxY <= minY) return source;
+      const pad = Math.round(Math.max(width, height) * 0.035);
+      minX = Math.max(0, minX - pad);
+      minY = Math.max(0, minY - pad);
+      maxX = Math.min(width - 1, maxX + pad);
+      maxY = Math.min(height - 1, maxY + pad);
+      const cropW = maxX - minX + 1;
+      const cropH = maxY - minY + 1;
+      const cropped = document.createElement('canvas');
+      cropped.width = cropW;
+      cropped.height = cropH;
+      cropped.getContext('2d').drawImage(source, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+      return cropped;
+    }
+
+    function setPdfZoom(next) {
+      const clamped = Math.min(PDF_ZOOM_STEPS[PDF_ZOOM_STEPS.length - 1], Math.max(PDF_ZOOM_STEPS[0], next));
+      pdfPreviewZoom = clamped;
+      const pages = document.getElementById('pdfPages');
+      if (pages) pages.style.setProperty('--pdf-card', `${Math.round(680 * pdfPreviewZoom)}px`);
+      document.getElementById('pdfZoomLabel').textContent = `${Math.round(pdfPreviewZoom * 100)}%`;
+    }
+
     async function openPdfPreview(file) {
       if (!file) return;
       const body = document.getElementById('bottomSheetBody');
+      const toolbar = document.getElementById('pdfToolbar');
       body.classList.add('pdf-body');
+      toolbar.classList.add('is-on');
       body.innerHTML = '<div class="pdf-pages"><div class="pdf-loading">Loading preview...</div></div>';
+      pdfPreviewZoom = 1;
+      document.getElementById('pdfZoomLabel').textContent = '100%';
       showBottomSheet('Preview', file.name);
 
       try {
@@ -1485,20 +1574,29 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
         const pagesEl = document.createElement('div');
+        pagesEl.id = 'pdfPages';
         pagesEl.className = 'pdf-pages';
+        pagesEl.style.setProperty('--pdf-card', '680px');
         const maxPages = Math.min(pdf.numPages, 20);
         for (let i = 1; i <= maxPages; i++) {
           const page = await pdf.getPage(i);
-          const unscaled = page.getViewport({ scale: 1 });
-          const width = Math.min(Math.max(body.clientWidth - 32, 320), 980);
-          const scale = width / unscaled.width;
-          const viewport = page.getViewport({ scale });
-          const canvas = document.createElement('canvas');
+          const viewport = page.getViewport({ scale: 2 });
+          const raw = document.createElement('canvas');
+          raw.width = viewport.width;
+          raw.height = viewport.height;
+          await page.render({ canvasContext: raw.getContext('2d'), viewport }).promise;
+          const canvas = cropCanvasWhitespace(raw);
           canvas.className = 'pdf-page';
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-          pagesEl.appendChild(canvas);
+          const wrap = document.createElement('div');
+          wrap.className = 'pdf-page-wrap';
+          wrap.appendChild(canvas);
+          if (pdf.numPages > 1) {
+            const label = document.createElement('div');
+            label.className = 'pdf-page-label';
+            label.textContent = `Page ${i} of ${pdf.numPages}`;
+            wrap.appendChild(label);
+          }
+          pagesEl.appendChild(wrap);
         }
         if (pdf.numPages > maxPages) {
           const more = document.createElement('div');
@@ -1509,6 +1607,7 @@
         body.innerHTML = '';
         body.appendChild(pagesEl);
       } catch (err) {
+        toolbar.classList.remove('is-on');
         if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
         pdfPreviewUrl = URL.createObjectURL(file);
         body.innerHTML = `<embed class="pdf-frame" type="application/pdf" src="${pdfPreviewUrl}#toolbar=1&navpanes=0" />`;
@@ -1521,6 +1620,7 @@
         URL.revokeObjectURL(pdfPreviewUrl);
         pdfPreviewUrl = null;
       }
+      document.getElementById('pdfToolbar').classList.remove('is-on');
       const body = document.getElementById('bottomSheetBody');
       body.classList.remove('pdf-body');
       body.innerHTML = '';
@@ -1530,6 +1630,7 @@
 
     function closeBottomSheet() {
       document.getElementById('bottomSheet').style.display = 'none';
+      document.getElementById('pdfToolbar').classList.remove('is-on');
       const body = document.getElementById('bottomSheetBody');
       body.classList.remove('pdf-body');
       body.innerHTML = '';
@@ -1541,6 +1642,14 @@
 
     previewExtractBtn.addEventListener('click', () => openPdfPreview(selectedFile));
     previewInvoiceBtn.addEventListener('click', () => openPdfPreview(invoiceFile));
+    document.getElementById('pdfZoomOut').addEventListener('click', () => {
+      const idx = PDF_ZOOM_STEPS.findIndex((step) => step >= pdfPreviewZoom - 0.001);
+      setPdfZoom(PDF_ZOOM_STEPS[Math.max(0, (idx === -1 ? 0 : idx) - 1)]);
+    });
+    document.getElementById('pdfZoomIn').addEventListener('click', () => {
+      const idx = PDF_ZOOM_STEPS.findIndex((step) => step > pdfPreviewZoom + 0.001);
+      setPdfZoom(PDF_ZOOM_STEPS[idx === -1 ? PDF_ZOOM_STEPS.length - 1 : idx]);
+    });
     document.getElementById('bottomSheet').addEventListener('click', (e) => {
       if (e.target.id === 'bottomSheet') closeBottomSheet();
     });
