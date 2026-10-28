@@ -21,38 +21,48 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/site.css?v=4">
+  <link rel="stylesheet" href="/site.css?v=5">
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <a class="logo-container" href="/">
       <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
       <div class="logo-text">TableJSON</div>
     </a>
-    <nav class="header-links">
-      <a href="/">Playground</a>
-      <a href="/guides" class="on">Guides</a>
-      <a href="/docs">Docs</a>
+    <nav class="tabs" aria-label="Primary">
+      <a href="/">Tool</a>
+      <a href="/guides" class="on" aria-current="page">Guides</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a href="/docs">API/Docs</a>
       <a href="/about">About</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
   </header>
-  <main class="legal">
+  <div class="shell">
+    <div class="read-grid">
+      <nav class="toc" aria-label="On this page">
+        <p class="toc-label">On this page</p>
+        <a href="#the-highlight-test">The highlight test</a>
+        <a href="#what-tablejson-returns-for-each">What TableJSON returns for each</a>
+        <a href="#how-good-pdfs-get-turned-into-scans">How good PDFs get turned into scans</a>
+        <a href="#what-to-do-when-you-only-have-the-scan">What to do when you only have the scan</a>
+        <a href="#a-habit-that-avoids-the-argument">A habit that avoids the argument</a>
+      </nav>
+      <main class="legal">
     <article id="article-body">
 <p class="kicker">Guide</p>
 <h2>Text-layer PDFs and scanned PDFs</h2>
 <p>People say "PDF" as if it were one format. For table extraction there are two. A text-layer PDF has characters the computer can select. A scanned PDF is a picture of a page, sometimes with a hidden OCR layer, often without one. TableJSON only reads the first kind. It does not look at pixels, and it will not guess a digit from a smudge. Knowing which file you hold saves you a wasted upload.</p>
-<h3>The highlight test</h3>
+<h3 id="the-highlight-test">The highlight test</h3>
 <p>Open the PDF in Chrome, Preview, or Acrobat. Click and drag across a price. If the digits turn into a selection, like text in a browser, the file has a text layer and it is worth uploading. If the drag draws a box over a photo and nothing selects, it is an image. Zoom to 300 percent. Text-layer type stays sharp. A scan goes soft and you can see the halftone or the shadow of the paper.</p>
 <p>A second check, if you like a terminal: <code>pdftotext -layout invoice.pdf -</code>. Text on the screen means a text layer. An empty result, or a warning and no words, means TableJSON will also see nothing useful. You do not need that command for day-to-day use. The highlight test is enough.</p>
 <p>There is a sneaky third case. Some scanners and some "print to PDF" drivers run OCR and then hide the recognized text under the image, or they flatten everything and throw the text away. Highlight still tells the truth. If you can select the words, we can read them, even when a photo of the page is painted on top. If you cannot, the OCR either failed or was discarded.</p>
-<h3>What TableJSON returns for each</h3>
+<h3 id="what-tablejson-returns-for-each">What TableJSON returns for each</h3>
 <p>A text-layer table comes back as JSON with headers, rows, <code>page_number</code>, and <code>page_end</code>. <code>metadata.extraction_mode</code> is always <code>text</code>. That field is not a detector you can flip. It is a reminder of the only mode this service runs. The walkthrough of a normal extract is in <a href="/guides/extracting-tables-from-pdf-to-json">extracting tables from a PDF into JSON</a>.</p>
 <p>A scanned invoice on the invoice card returns a workbook anyway. The checksum cell reads <code>FAIL: no text layer</code>. The line table is empty. That FAIL is the product working. A green total on a file with no characters would be a fabrication. A scanned file on the left card, the general extract, parses if it is a valid PDF and then finds no columns. You get <code>tables_found: 0</code> when there is no text at all. If the scan includes a header and footer that happen to be real text, those lines may show up and the body of the table will not. Do not treat a stray page number as a recovered ledger.</p>
 <p>A corrupt file, or a file that is not a PDF despite the name, comes back as <code>INVALID_PDF</code> with a short reason. Renaming a JPEG to <code>.pdf</code> is in that bucket. The extractor does not convert images.</p>
-<h3>How good PDFs get turned into scans</h3>
+<h3 id="how-good-pdfs-get-turned-into-scans">How good PDFs get turned into scans</h3>
 <p>The usual story is a bank, a carrier, or a government portal. You click Download PDF and the file looks perfect, because it was printed from their system. Highlight works, TableJSON works. The next month someone in the branch scans the same statement on a multifunction copier and emails that. It looks identical at a glance and extracts as nothing.</p>
 <p>Other ways the text layer dies:</p>
 <ul>
@@ -62,26 +72,38 @@
   <li>A security flatten that burns the page to an image to stop copying. The publisher got what they wanted. You will not get cells.</li>
 </ul>
 <p>If you created the PDF yourself from Excel, Word, or Google Sheets, export again and choose the application's PDF export, not a scanner. Sheets and Excel can also give you CSV directly, which you should prefer. TableJSON is the fallback for a file someone else already froze.</p>
-<h3>What to do when you only have the scan</h3>
+<h3 id="what-to-do-when-you-only-have-the-scan">What to do when you only have the scan</h3>
 <p>A short bill, five lines, is faster to type than to push through an OCR pipeline and then clean. A 12-page statement is not. Run OCR in a tool that writes a real text layer back into a PDF, then upload that PDF here. The order matters. OCR first, TableJSON second. This site will not call out to a vision model on your behalf, and the privacy page would be a different document if it did.</p>
 <p>After OCR, do the highlight test again before you celebrate. Cheap OCR on a creased page swaps 8 and 6, drops a decimal, or glues two columns into one word. TableJSON will faithfully return that mistake. The checksum on an invoice is useful here: if OCR changed a unit price, <code>line_check</code> goes FAIL and the remainder shows the gap. A statement has no checksum in this app. Reconcile the opening balance, the sum of the amounts, and the closing balance yourself, as the <a href="/guides/bank-statement-pdfs-to-spreadsheets">bank statement guide</a> describes.</p>
 <p>Watch column spacing after OCR. Some engines put a single space between cells. TableJSON splits on two or more spaces, or on tabs, pipes, or commas. A single space does not count, and the row collapses to one cell. If the highlight works but the JSON is one column, the text layer is real and the spacing is wrong. Re-OCR with a layout mode, or export to CSV from the OCR tool, or insert the gaps. The <a href="/guides/cleaning-messy-table-json">cleaning guide</a> covers the one-column case once you already have JSON.</p>
-<h3>A habit that avoids the argument</h3>
+<h3 id="a-habit-that-avoids-the-argument">A habit that avoids the argument</h3>
 <p>Before you send a PDF to a colleague or to a job, try to select one number. Mention in the email whether the text layer is there. "Digital PDF, text selectable" and "scan, needs OCR" are different tasks, and they should not share a folder. On TableJSON, if Extract finishes in a few dozen milliseconds with zero tables, assume the layer is missing until you prove otherwise. Speed plus emptiness is the signature of a picture. A real table of any size takes the parser a moment and returns rows you can find on the page.</p>
 <p>If you are automating, branch on that result. <code>tables_found === 0</code>, or an invoice checksum of <code>FAIL: no text layer</code>, goes to a human queue or to your OCR step. It should not go into the ledger import. The <a href="/guides/automate-pdf-table-extraction">API guide</a> shows the status fields to switch on. Retrying the same scan will not grow a text layer.</p>
     </article>
   </main>
+    </div>
+    <section class="related" aria-label="Related guides">
+      <h2>Related guides</h2>
+      <div class="guide-grid">
+        <a class="guide-card" href="/guides/cleaning-messy-table-json"><strong>Cleaning messy table JSON</strong><span>Bad headers, shifted columns, page furniture.</span></a>
+        <a class="guide-card" href="/guides/bank-statement-pdfs-to-spreadsheets"><strong>Bank statements to a spreadsheet</strong><span>Blank amount cells and the opening balance.</span></a>
+        <a class="guide-card" href="/guides/json-vs-csv-for-table-data"><strong>JSON or CSV for table data</strong><span>When to keep the tree, and when to write CSV.</span></a>
+      </div>
+    </section>
+  </div>
   <footer>
     <nav>
-      <a href="/">Playground</a>
+      <a href="/">Tool</a>
       <a href="/guides">Guides</a>
-      <a href="/docs">Docs</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a href="/docs">API/Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
-    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent.</p>
   </footer>
 </body>
 </html>

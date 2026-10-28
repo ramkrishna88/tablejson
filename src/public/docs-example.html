@@ -15,60 +15,76 @@
   <link rel="manifest" href="/site.webmanifest">
   <meta property="og:image" content="https://tablejson.com/og.png">
   <meta name="theme-color" content="#0b0f19">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/site.css?v=4">
+  <link rel="stylesheet" href="/site.css?v=5">
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <a class="logo-container" href="/">
       <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
       <div class="logo-text">TableJSON</div>
     </a>
-    <nav class="header-links">
-      <a href="/">Playground</a>
+    <nav class="tabs" aria-label="Primary">
+      <a href="/">Tool</a>
       <a href="/guides">Guides</a>
-      <a class="on" href="/docs">Docs</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a class="on" aria-current="page" href="/docs">API/Docs</a>
       <a href="/about">About</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
   </header>
-  <main class="legal">
-    <h2>Example extract response</h2>
-    <p>This is the RapidAPI Hub sample. It shows the same JSON shape as a live extract, without parsing a PDF.</p>
-
-    <h3>What to send</h3>
-    <p>Method: <code>POST /v1/example</code></p>
-    <p>Body (JSON):</p>
-    <p><code>{"file":"https://tablejson.com/sample-mini.pdf"}</code></p>
-    <p>The <code>file</code> URL is only an example. This route ignores the file and returns a canned 2-row table so Chrome does not freeze.</p>
-
-    <h3>What you get</h3>
-    <ul>
-      <li><code>status</code>: success</li>
-      <li><code>tables_found</code>: 1</li>
-      <li>Two rows: Hosting $1250.00 and Licenses $4500.00</li>
-      <li>Fields: <code>page_number</code>, <code>page_end</code>, <code>data</code>, <code>raw_cells</code></li>
-    </ul>
-
-    <h3>Live PDF</h3>
-    <p>To extract a real table, use <a href="/docs">POST /v1/extract-tables</a> and upload a text-layer PDF, or send a public PDF URL. Mini file: <a href="/sample-mini.pdf">sample-mini.pdf</a>.</p>
-    <p>Full API docs: <a href="/docs">tablejson.com/docs</a>.</p>
-  </main>
+  <div class="shell">
+    <div class="docs-shell">
+      <nav class="sidemenu" aria-label="Example sections">
+        <p class="toc-label">Example</p>
+        <a href="#send">What to send</a>
+        <a href="#get">What you get</a>
+        <a href="#live">Live PDF</a>
+        <a href="/docs">Full API reference</a>
+      </nav>
+      <div class="docs-main">
+        <section class="card">
+          <p class="kicker">Example</p>
+          <h2>Extract response</h2>
+          <p>This is the RapidAPI Hub sample. Same JSON shape as a live extract, without parsing a PDF.</p>
+        </section>
+        <div class="endpoint-grid pairs">
+          <section class="card" id="send">
+            <h3>What to send</h3>
+            <p>Method: <code>POST /v1/example</code></p>
+            <p>Body: <code>{"file":"https://tablejson.com/sample-mini.pdf"}</code></p>
+            <p>The URL is only an example. This route ignores the file and returns a canned 2-row table so the browser stays light.</p>
+          </section>
+          <section class="card" id="get">
+            <h3>What you get</h3>
+            <ul>
+              <li><code>status</code>: success</li>
+              <li><code>tables_found</code>: 1</li>
+              <li>Hosting $1250.00 and Licenses $4500.00</li>
+              <li><code>page_number</code>, <code>page_end</code>, <code>data</code>, <code>raw_cells</code></li>
+            </ul>
+          </section>
+        </div>
+        <section class="card" id="live">
+          <h3>Live PDF</h3>
+          <p>For a real table, use <a href="/docs">POST /v1/extract-tables</a> with a text-layer PDF, or send a public URL. Mini file: <a href="/sample-mini.pdf">sample-mini.pdf</a>.</p>
+        </section>
+      </div>
+    </div>
+  </div>
   <footer>
     <nav>
-      <a href="/">Playground</a>
+      <a href="/">Tool</a>
       <a href="/guides">Guides</a>
-      <a href="/docs">Docs</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a href="/docs">API/Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
-    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent.</p>
   </footer>
 </body>
 </html>

@@ -18,123 +18,130 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/site.css?v=4">
+  <link rel="stylesheet" href="/site.css?v=5">
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <a class="logo-container" href="/">
       <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
       <div class="logo-text">TableJSON</div>
     </a>
-    <nav class="header-links">
-      <a href="/">Playground</a>
+    <nav class="tabs" aria-label="Primary">
+      <a href="/">Tool</a>
       <a href="/guides">Guides</a>
-      <a class="on" href="/docs">Docs</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a class="on" aria-current="page" href="/docs">API/Docs</a>
       <a href="/about">About</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
   </header>
-  <main class="legal">
-    <h2>API reference</h2>
-    <p>TableJSON extracts tables from text-layer PDFs and returns JSON. Base URL: <code>https://tablejson.com</code>. Machine-readable spec: <a href="/openapi.json">/openapi.json</a>.</p>
-
-    <h3>Authentication</h3>
-    <p>The <a href="/">playground</a> is same-origin and does not need a key. Direct API, RapidAPI, and Zapier calls do.</p>
-    <ul>
-      <li>Direct API: send <code>X-API-Key: YOUR_KEY</code> or <code>Authorization: Bearer YOUR_KEY</code></li>
-      <li>RapidAPI: send only <code>X-RapidAPI-Key</code></li>
-      <li>Zapier: paste the same API key in the integration connection</li>
-    </ul>
-    <p>Request a key at <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>. There is no customer login. Keys are issued to callers; the website itself does not require an account.</p>
-
-    <h3>GET /v1/health</h3>
-    <p>Confirms the API is up. No file and no key required.</p>
+  <div class="shell">
+    <div class="docs-shell">
+      <nav class="sidemenu" aria-label="API sections">
+        <p class="toc-label">On this page</p>
+        <a href="#auth">Authentication</a>
+        <a href="#health">Health</a>
+        <a href="#example">Example</a>
+        <a href="#extract">Extract tables</a>
+        <a href="#invoice">Invoice Excel</a>
+        <a href="#errors">Errors</a>
+        <a href="#zapier">Zapier</a>
+      </nav>
+      <div class="docs-main">
+        <section class="card">
+          <p class="kicker">API</p>
+          <h2>Reference</h2>
+          <p>TableJSON extracts tables from text-layer PDFs and returns JSON. Base URL: <code>https://tablejson.com</code>. Machine-readable spec: <a href="/openapi.json">/openapi.json</a>.</p>
+        </section>
+        <div class="endpoint-grid pairs">
+          <section class="card endpoint" id="auth">
+            <h3>Authentication</h3>
+            <p>The <a href="/">playground</a> is same-origin and does not need a key. Direct API, RapidAPI, and Zapier calls do.</p>
+            <ul>
+              <li>Direct API: <code>X-API-Key</code> or <code>Authorization: Bearer</code></li>
+              <li>RapidAPI: <code>X-RapidAPI-Key</code> only</li>
+              <li>Zapier: the same key in the connection</li>
+            </ul>
+            <p>Request a key from the <a href="/contact">contact page</a>. There is no customer login.</p>
+          </section>
+          <section class="card endpoint" id="health">
+            <h3>GET /v1/health</h3>
+            <p>Confirms the API is up. No file and no key.</p>
 <pre class="sample">curl https://tablejson.com/v1/health</pre>
-<pre class="sample">{
-  "status": "ok"
-}</pre>
-
-    <h3>GET or POST /v1/example</h3>
-    <p>Returns a tiny 2-row sample so testers can see the extract JSON shape without parsing a PDF. POST accepts a JSON body; the file URL is ignored. Details: <a href="/docs/example">example playground docs</a>.</p>
+<pre class="sample">{ "status": "ok" }</pre>
+          </section>
+          <section class="card endpoint" id="example">
+            <h3>GET or POST /v1/example</h3>
+            <p>A tiny 2-row sample. The file URL is ignored. <a href="/docs/example">Example notes</a>.</p>
 <pre class="sample">curl -X POST https://tablejson.com/v1/example \
   -H "Content-Type: application/json" \
   -d '{"file":"https://tablejson.com/sample-mini.pdf"}'</pre>
-
-    <h3>POST /v1/extract-tables</h3>
-    <p>Live extract of every table in a text-layer PDF. Scanned or image-only PDFs are not supported.</p>
-    <p><strong>Parameters</strong></p>
-    <ul>
-      <li><code>file</code> (required) — multipart PDF upload, or JSON <code>{"file":"https://…"}</code> with a public HTTP(S) URL</li>
-    </ul>
-    <p>Small test file: <a href="/sample-mini.pdf">sample-mini.pdf</a>. Larger sample: <a href="/sample.pdf">sample.pdf</a>. Limit is 500 MB.</p>
-    <p><strong>Example request (URL)</strong></p>
-<pre class="sample">curl -X POST https://tablejson.com/v1/extract-tables \
-  -H "X-API-Key: YOUR_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"file":"https://tablejson.com/sample-mini.pdf"}'</pre>
-    <p><strong>Example request (upload)</strong></p>
+          </section>
+          <section class="card endpoint" id="errors">
+            <h3>Errors</h3>
+            <ul>
+              <li><code>400</code> — missing file, not a PDF, empty file, or bad URL</li>
+              <li><code>401</code> — missing or invalid API key</li>
+              <li><code>413</code> — file too large</li>
+              <li><code>429</code> — rate limited</li>
+            </ul>
+          </section>
+        </div>
+        <section class="card endpoint" id="extract">
+          <h3>POST /v1/extract-tables</h3>
+          <p>Live extract of every table in a text-layer PDF. Scanned PDFs are not supported. <code>file</code> is a multipart upload or JSON <code>{"file":"https://…"}</code>. Limit 500 MB upload, 50 MB for a URL. Samples: <a href="/sample-mini.pdf">sample-mini.pdf</a>, <a href="/sample.pdf">sample.pdf</a>.</p>
 <pre class="sample">curl -X POST https://tablejson.com/v1/extract-tables \
   -H "X-API-Key: YOUR_KEY" \
   -F "file=@invoice.pdf"</pre>
-    <p><strong>Example response</strong></p>
 <pre class="sample">{
   "status": "success",
   "filename": "example.pdf",
   "total_pages": 1,
   "tables_found": 1,
   "metadata": { "execution_time_ms": 12, "extraction_mode": "text" },
-  "tables": [
-    {
-      "table_id": 1,
-      "page_number": 1,
-      "page_end": 1,
-      "headers": ["date", "item", "amount"],
-      "total_rows": 2,
-      "rows": [
-        {
-          "row_index": 1,
-          "data": { "date": "2026-01-05", "item": "Hosting", "amount": "1250.00" },
-          "raw_cells": ["2026-01-05", "Hosting", "1250.00"]
-        }
-      ]
-    }
-  ]
+  "tables": [{
+    "table_id": 1,
+    "page_number": 1,
+    "page_end": 1,
+    "headers": ["date", "item", "amount"],
+    "total_rows": 2,
+    "rows": [{
+      "row_index": 1,
+      "data": { "date": "2026-01-05", "item": "Hosting", "amount": "1250.00" },
+      "raw_cells": ["2026-01-05", "Hosting", "1250.00"]
+    }]
+  }]
 }</pre>
-
-    <h3>POST /v1/invoice-xlsx</h3>
-    <p>Turns a text-layer invoice PDF into a checksummed Excel workbook. Same auth as extract. Zapier action: Invoice PDF to Excel. RapidAPI: import <a href="/openapi.json">openapi.json</a> and add this route, or run <code>GET /v1/invoice-example</code> in the Hub first.</p>
-    <p>Returns an <code>.xlsx</code> file. Add <code>?format=json</code> for the checksum preview. Sheet <code>Invoice</code> has vendor, invoice number, date, currency, line items, and a PASS/FAIL checksum. Scanned PDFs still download, with <code>FAIL: no text layer</code>.</p>
+        </section>
+        <section class="card endpoint" id="invoice">
+          <h3>POST /v1/invoice-xlsx</h3>
+          <p>A text-layer invoice becomes a checksummed Excel workbook. Add <code>?format=json</code> for the preview. Sheet <code>Invoice</code> has vendor, number, date, currency, lines, and PASS or FAIL. A scan still downloads, with <code>FAIL: no text layer</code>. Try <a href="/sample-invoice.pdf">sample-invoice.pdf</a>.</p>
 <pre class="sample">curl -X POST https://tablejson.com/v1/invoice-xlsx \
   -H "X-API-Key: YOUR_KEY" \
   -F "file=@invoice.pdf" \
   -o invoice.xlsx</pre>
-    <p>Playground: Preview then Extract on the invoice card, or use <a href="/sample-invoice.pdf">sample-invoice.pdf</a>.</p>
-
-    <h3>Errors</h3>
-    <ul>
-      <li><code>400</code> — missing file, not a PDF, empty file, or bad URL</li>
-      <li><code>401</code> — missing or invalid API key on protected routes</li>
-      <li><code>413</code> — file too large</li>
-      <li><code>429</code> — rate limited</li>
-    </ul>
-
-    <h3>Zapier</h3>
-    <p>TableJSON has two actions: Extract Tables From PDF (<code>POST /v1/extract-tables</code>) and Invoice PDF to Excel (<code>POST /v1/invoice-xlsx</code>). Connect a TableJSON API key. Use a text-layer PDF from a previous Zap step.</p>
-    <p>Longer walkthroughs, including a folder loop and the scan check, are in the <a href="/guides">guides</a>. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>.</p>
-  </main>
+        </section>
+        <section class="card endpoint" id="zapier">
+          <h3>Zapier</h3>
+          <p>Two actions: Extract Tables From PDF and Invoice PDF to Excel. Connect an API key and pass a text-layer PDF from an earlier step. Longer notes are in the <a href="/guides">guides</a>.</p>
+        </section>
+      </div>
+    </div>
+  </div>
   <footer>
     <nav>
-      <a href="/">Playground</a>
+      <a href="/">Tool</a>
       <a href="/guides">Guides</a>
-      <a href="/docs">Docs</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a href="/docs">API/Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
-    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent.</p>
   </footer>
 </body>
 </html>
