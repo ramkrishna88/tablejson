@@ -4,60 +4,69 @@
   <meta charset="UTF-8">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1210860150241703" crossorigin="anonymous"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google-adsense-account" content="ca-pub-1210860150241703">
+  <link rel="canonical" href="https://tablejson.com/about">
   <title>About — TableJSON</title>
-  <meta name="description" content="TableJSON extracts tables from text-layer PDFs into clean JSON. Playground, RapidAPI, and Zapier ready.">
+  <meta name="description" content="TableJSON is run by Venkata Naidu. It turns text-layer PDF tables into JSON, and invoices into a checksummed Excel file.">
   <link rel="icon" href="/favicon.ico?v=2" sizes="any">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=2">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
   <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:title" content="About — TableJSON">
+  <meta property="og:description" content="TableJSON is run by Venkata Naidu. It turns text-layer PDF tables into JSON, and invoices into a checksummed Excel file.">
+  <meta property="og:url" content="https://tablejson.com/about">
   <meta property="og:image" content="https://tablejson.com/og.png">
   <meta name="theme-color" content="#0b0f19">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/site.css">
+  <link rel="stylesheet" href="/site.css?v=4">
 </head>
 <body>
   <header>
-    <a class="logo-container" href="/home">
+    <a class="logo-container" href="/">
       <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
       <div class="logo-text">TableJSON</div>
     </a>
     <nav class="header-links">
-      <a href="/home">Home</a>
       <a href="/">Playground</a>
+      <a href="/guides">Guides</a>
       <a href="/docs">Docs</a>
-      <a class="on" href="/about">About</a>
+      <a href="/about" class="on">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
   </header>
   <main class="legal">
-    <h2>About</h2>
-    <p>TableJSON turns tables in text-layer PDFs into clean JSON. Upload a file on the playground, or call the API from RapidAPI, Zapier, or your own HTTP client.</p>
-    <h3>What it does</h3>
-    <ul>
-      <li>Reads the PDF text layer and finds tables</li>
-      <li>Returns headers, rows, and page numbers as JSON</li>
-      <li>Works on digital PDFs up to 500 MB</li>
-    </ul>
-    <p>It does not OCR scanned or image-only PDFs. Those files have no text layer to extract.</p>
-    <h3>How to use it</h3>
-    <p>The marketing site is <a href="/home">/home</a>. The playground is at <a href="/">tablejson.com</a>. API docs are at <a href="/docs">/docs</a> and <a href="/openapi.json">/openapi.json</a>. This product is separate from HidePDF Content, which hides sensitive values in PDFs.</p>
+    <article id="article-body">
+<p class="kicker">About</p>
+<h2>Who runs TableJSON, and why it exists</h2>
+<p>TableJSON is run by Venkata Naidu. It is a small independent tool, not a company with a support department behind a ticket wall. The public address for the site is <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>, and that inbox is the right place for a broken extract, a key request, or a privacy question. The code lives with the same person who answers that mail.</p>
+<p>The site exists because tables keep showing up frozen inside PDFs. An invoice, a price list, a statement, a report someone exported with "Print" because the real export button was hidden. The numbers are right there on the page, and copying them into a sheet scrambles the columns. Highlight the text and it is real characters. It still will not land in cells. TableJSON is the small step in between: read the text layer, return rows as JSON, and for a normal invoice, check the arithmetic before the Excel file downloads.</p>
+<h3>What it is willing to do</h3>
+<p>The <a href="/">playground</a> takes a PDF and returns tables. Headers become keys. Each row keeps an object and the original cells. Page start and page end come along so a statement that repeats its header does not have to be stitched by hand. Invoices can come back as a workbook with a PASS or FAIL checksum, and FAIL still downloads, because a silent empty file is worse than a red cell. Files can be large. The upload limit is 500 MB. A URL you send instead of the bytes stops at 50 MB.</p>
+<p>You can do the same thing from <code>POST /v1/extract-tables</code> and <code>POST /v1/invoice-xlsx</code>, from Zapier, or from RapidAPI. The playground on this host does not ask you to log in. A script does need a key, which is issued to the caller rather than tied to an account page. The <a href="/docs">API reference</a> and the <a href="/guides">guides</a> are the long version of how to use it without surprises.</p>
+<h3>What it will not pretend to do</h3>
+<p>It does not OCR. A scanned page has no text layer, and inventing digits from a photograph is a different product with a different privacy story. If you cannot highlight a price in Chrome or Preview, TableJSON will not type it for you. It also does not watch ruling lines. Columns come from tabs, pipes, wide spaces, or commas in the text. Merged cells and side-by-side tables can come out messy, and the guides say so instead of calling every extract clean.</p>
+<p>Uploads are not a document library. A multipart PDF is written to a temporary file for that request and deleted when the response is sent. That is a narrower claim than "we never touch disk," which would be false. The <a href="/privacy">privacy page</a> is the precise version, including cookies and the Google AdSense disclosure.</p>
+<h3>A different product</h3>
+<p>TableJSON is not HidePDF Content. HidePDF is about hiding sensitive values inside a PDF. This site is about reading tables out. They share a person, not a pipeline. Do not send a file here expecting it to be redacted, and do not send a file there expecting JSON rows back.</p>
+<p>If something extracted wrong, email the time, the error code if there was one, and a description of the layout. Leave out live API keys and, unless we ask, the PDF itself. A sample you are allowed to share is more useful than a production statement.</p>
+    </article>
   </main>
   <footer>
     <nav>
-      <a href="/home">Home</a>
       <a href="/">Playground</a>
+      <a href="/guides">Guides</a>
       <a href="/docs">Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
-    <p>Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
   </footer>
 </body>
 </html>

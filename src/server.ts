@@ -20,9 +20,13 @@ const __dirname = path.dirname(__filename);
 
 const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024;
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'https://tablejson.com';
+const CANONICAL_HOST = 'tablejson.com';
+const invokedDirectly = Boolean(
+  process.argv[1] && path.resolve(process.argv[1]) === __filename
+);
 
 const fastify = Fastify({
-  logger: true,
+  logger: invokedDirectly && process.env.TABLEJSON_NO_LISTEN !== '1',
   trustProxy: true,
   requestTimeout: 180_000
 });
@@ -58,6 +62,55 @@ fastify.addHook('onSend', async (request, reply) => {
     reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
 });
+
+// www → apex and http → https. /ads.txt on the apex stays a 200, including
+// when x-forwarded-proto is http, so the ads.txt crawler is not redirected
+// off the file it came to fetch.
+fastify.addHook('onRequest', (request, reply, done) => {
+  const target = canonicalRedirectTarget(
+    request.headers.host,
+    request.headers['x-forwarded-proto'],
+    request.raw.url || '/'
+  );
+  if (target) {
+    reply.header('Cache-Control', 'public, max-age=3600');
+    reply.redirect(target, 301);
+    return;
+  }
+  done();
+});
+
+export function canonicalRedirectTarget(
+  hostHeader: string | string[] | undefined,
+  forwardedProto: string | string[] | undefined,
+  rawUrl: string
+): string | null {
+  const host = String(Array.isArray(hostHeader) ? hostHeader[0] : hostHeader || '')
+    .toLowerCase()
+    .replace(/:\d+$/, '');
+  const isWww = host === `www.${CANONICAL_HOST}`;
+  const isApex = host === CANONICAL_HOST;
+  if (!isWww && !isApex) {
+    return null;
+  }
+
+  const qIndex = rawUrl.indexOf('?');
+  const pathOnly = qIndex === -1 ? rawUrl : rawUrl.slice(0, qIndex);
+  const query = qIndex === -1 ? '' : rawUrl.slice(qIndex);
+  if (isApex && pathOnly === '/ads.txt') {
+    return null;
+  }
+
+  const forwarded = String(Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto || '')
+    .split(',')[0]
+    .trim()
+    .toLowerCase();
+  const normalizedPath = pathOnly === '/home' || pathOnly === '/home/' ? '/' : pathOnly;
+  if (!isWww && forwarded !== 'http') {
+    return null;
+  }
+  return `https://${CANONICAL_HOST}${normalizedPath}${query}`;
+}
 
 fastify.get('/ads.txt', async (_request, reply) => {
   const body = fs.readFileSync(path.join(__dirname, 'public', 'ads.txt'), 'utf8');
@@ -134,11 +187,52 @@ await fastify.register(fastifyStatic, {
   }
 });
 
-const sitePages = ['about', 'privacy', 'contact', 'terms', 'docs', 'home'] as const;
+const sitePages = ['about', 'privacy', 'contact', 'terms', 'docs'] as const;
 for (const page of sitePages) {
   fastify.get(`/${page}`, async (_request, reply) => reply.sendFile(`${page}.html`));
 }
 fastify.get('/docs/example', async (_request, reply) => reply.sendFile('docs-example.html'));
+
+export const guideSlugs = [
+  'extracting-tables-from-pdf-to-json',
+  'invoice-pdf-to-excel-and-csv',
+  'text-layer-vs-scanned-pdfs',
+  'cleaning-messy-table-json',
+  'bank-statement-pdfs-to-spreadsheets',
+  'json-vs-csv-for-table-data',
+  'automate-pdf-table-extraction'
+] as const;
+
+fastify.get('/guides', async (_request, reply) => reply.sendFile('guides/index.html'));
+fastify.get('/guides/', async (_request, reply) => reply.redirect('/guides', 301));
+for (const slug of guideSlugs) {
+  fastify.get(`/guides/${slug}`, async (_request, reply) => reply.sendFile(`guides/${slug}.html`));
+}
+
+fastify.get('/home', async (request, reply) => {
+  const url = request.raw.url || '/home';
+  const query = url.includes('?') ? url.slice(url.indexOf('?')) : '';
+  return reply.redirect(`/${query}`, 301);
+});
+
+const notFoundHtml = fs.readFileSync(path.join(__dirname, 'public', '404.html'), 'utf8');
+fastify.setNotFoundHandler((request, reply) => {
+  const pathOnly = (request.raw.url || '/').split('?')[0];
+  const accept = String(request.headers.accept || '');
+  const apiRoute = pathOnly === '/v1' || pathOnly.startsWith('/v1/');
+  if (apiRoute || !accept.includes('text/html')) {
+    return reply.status(404).type('application/json; charset=utf-8').send({
+      status: 'error',
+      error_code: 'NOT_FOUND',
+      message: 'Not found.'
+    });
+  }
+  return reply
+    .status(404)
+    .type('text/html; charset=utf-8')
+    .header('Cache-Control', 'no-store')
+    .send(notFoundHtml);
+});
 
 // Register API Routes
 await fastify.register(healthRoutes);
@@ -159,7 +253,7 @@ fastify.get('/openapi.json', async () => {
         email: 'hello@tablejson.com'
       },
       'x-category': 'Data',
-      'x-website': 'https://tablejson.com/home'
+      'x-website': 'https://tablejson.com'
     },
     servers: [
       {
@@ -453,4 +547,8 @@ const start = async () => {
   }
 };
 
-start();
+export { fastify };
+
+if (invokedDirectly && process.env.TABLEJSON_NO_LISTEN !== '1') {
+  start();
+}

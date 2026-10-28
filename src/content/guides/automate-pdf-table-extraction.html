@@ -1,0 +1,52 @@
+<p class="kicker">Guide</p>
+<h2>Automating PDF table extraction with the API</h2>
+<p>The playground is the right tool for one PDF on a Thursday. It is the wrong tool for a folder that arrives every Monday. The API is the same extractor, without the browser: <code>POST /v1/extract-tables</code> returns the JSON, and <code>POST /v1/invoice-xlsx</code> returns the checksummed workbook. This guide is the boring setup that keeps a loop from posting garbage: auth, limits, a curl you can copy, and the fields worth branching on.</p>
+<h3>When to leave the playground</h3>
+<p>Stay on <a href="/">the site</a> while you are still learning the PDF. Download one JSON, check three cells, and read <a href="/guides/extracting-tables-from-pdf-to-json">the extract guide</a> if the shape surprises you. Move to the API when the same kind of file shows up again and the cleanup is written down. Automating a layout you have not checked once just produces a pile of confident JSON.</p>
+<p>The playground does not need a key because the browser request is same-origin. A script is not the playground. Send <code>X-API-Key</code> or <code>Authorization: Bearer YOUR_KEY</code>. Write to <a href="mailto:hello@tablejson.com">hello@tablejson.com</a> for a key. There is no signup form and no customer login. RapidAPI callers authenticate on RapidAPI's side. Zapier stores the key in the connection. Do not put the key in a query string or in a front-end bundle. A key in a public repository will be used by someone else within the hour, and the rate limit will be theirs and yours together.</p>
+<h3>One file, two ways to send it</h3>
+<p>Upload the bytes when you have the file. The multipart field name is <code>file</code>. The limit is 500 MB. The request can run for about three minutes, which matters for a dense report and does not matter for a one-page invoice.</p>
+<pre class="sample">curl -X POST https://tablejson.com/v1/extract-tables \
+  -H "X-API-Key: YOUR_KEY" \
+  -F "file=@invoice.pdf" \
+  -o invoice.json</pre>
+<p>Send a URL when the PDF is already on a public HTTPS address. The body is JSON, and the fetch limit is 50 MB. Localhost, link-local, and private network addresses are refused, so this is not a way to point the server at a file inside your office.</p>
+<pre class="sample">curl -X POST https://tablejson.com/v1/extract-tables \
+  -H "X-API-Key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"file":"https://tablejson.com/sample-mini.pdf"}'</pre>
+<p>Invoices use the other route. Without a query, the body is an xlsx file. With <code>?format=json</code>, the body is the checksum preview. Save the preview next to the workbook if a later job needs to read <code>checksum</code> without opening Excel.</p>
+<pre class="sample">curl -X POST "https://tablejson.com/v1/invoice-xlsx?format=json" \
+  -H "X-API-Key: YOUR_KEY" \
+  -F "file=@invoice.pdf"</pre>
+<p><code>GET /v1/example</code> and <code>GET /v1/invoice-example</code> return canned samples. They do not read a PDF. Useful in a hub tester. Useless in a pipeline. <code>GET /v1/health</code> is the ping that should sit in front of a deploy.</p>
+<h3>A folder loop that keeps the failures</h3>
+<p>This is deliberately plain bash. It uploads each PDF, writes the JSON beside it, and moves on. It does not retry a scan until the scan grows a text layer.</p>
+<pre class="sample">mkdir -p out
+for pdf in incoming/*.pdf; do
+  base=$(basename "$pdf" .pdf)
+  code=$(curl -sS -o "out/$base.json" -w "%{http_code}" \
+    -X POST https://tablejson.com/v1/extract-tables \
+    -H "X-API-Key: $TABLEJSON_API_KEY" \
+    -F "file=@$pdf")
+  echo "$code $pdf"
+done</pre>
+<p>Twenty requests a minute per IP is the limit. A tight loop over a large folder will see <code>429</code> and <code>retry_after_seconds</code>. Sleep that long and continue. Do not fire five parallel workers from the same address and call it a speedup. The server also only parses a couple of PDFs at a time, so extra concurrency waits anyway.</p>
+<p>After the loop, branch on the body, not only on the HTTP code. A 200 with <code>status: "success"</code> can still be an empty extract.</p>
+<ul>
+  <li><code>401</code> and <code>UNAUTHORIZED</code> — the key is missing or wrong. Fix the header. Do not retry.</li>
+  <li><code>400</code> with <code>INVALID_PDF</code> or <code>INVALID_FILE_TYPE</code> — not a readable text PDF. Quarantine the file.</li>
+  <li><code>413</code> — over 500 MB, or over 50 MB on a URL fetch.</li>
+  <li><code>429</code> — back off.</li>
+  <li><code>200</code> and <code>tables_found: 0</code> — almost always a scan or a page with no text. Send it to OCR or to a person. See <a href="/guides/text-layer-vs-scanned-pdfs">text-layer versus scanned</a>.</li>
+  <li><code>200</code> and a single table whose headers are <code>line_number</code> and <code>extracted_content</code> — text existed and never split into columns. Do not import it as transactions.</li>
+  <li>Invoice <code>checksum</code> of <code>PASS</code> — safe to file, after you have spot-checked that vendor once.</li>
+  <li>Any invoice <code>FAIL:</code> — keep the xlsx, do not post the total. <code>FAIL: no text layer</code> is a scan. A remainder is a math disagreement worth a human.</li>
+</ul>
+<h3>Where Zapier and RapidAPI fit</h3>
+<p>Zapier has two actions, Extract Tables From PDF and Invoice PDF to Excel. The key lives in the connection. The PDF has to be a file the Zap can hand over, from email, Drive, or a previous step. The same limits apply. A Zap that extracts and then immediately adds a row to a sheet should include a filter on <code>tables_found</code> or on the checksum. Otherwise a scanned attachment becomes a blank row that looks like success.</p>
+<p>RapidAPI is the same API behind their gateway. Import <a href="/openapi.json">openapi.json</a> when the routes change. Hub testers should run the example GETs first. Those responses are small so the browser does not choke on a giant body. Your production calls should be the POST routes, with a real file.</p>
+<p>Webhooks by Zapier, or any HTTP client, can call the routes directly if you would rather not wait on an app listing. Method POST, header <code>X-API-Key</code>, body multipart field <code>file</code>. The docs page has the same examples with less story around them: <a href="/docs">tablejson.com/docs</a>.</p>
+<h3>Keep the output, because the server will not</h3>
+<p>Nothing in this API remembers your PDF. The multipart upload is a temp file, deleted when the response finishes. The JSON in the response is the copy you own. Write it to disk, to your bucket, or to the Zap's storage. If you need the extract again tomorrow, read your copy. Uploading the same PDF again runs the parser again. It does not look up a previous result. That also means a bugfix on our side only shows up when you re-run. Pin a few sample PDFs in your repo, the tiny public ones or your own fixtures, and re-run them when you bump the client.</p>
+<p>Log the HTTP code, <code>tables_found</code>, <code>total_pages</code>, and the execution time. Do not log the PDF and do not log the rows if those rows are someone's statement. The balance check from the <a href="/guides/bank-statement-pdfs-to-spreadsheets">statement guide</a>, or the invoice checksum, belongs in the job. An automated extract without that check is a faster way to be wrong.</p>

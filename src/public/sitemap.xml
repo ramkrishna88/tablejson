@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://tablejson.com/</loc></url>
-  <url><loc>https://tablejson.com/home</loc></url>
-  <url><loc>https://tablejson.com/docs</loc></url>
-  <url><loc>https://tablejson.com/docs/example</loc></url>
-  <url><loc>https://tablejson.com/about</loc></url>
-  <url><loc>https://tablejson.com/privacy</loc></url>
-  <url><loc>https://tablejson.com/terms</loc></url>
-  <url><loc>https://tablejson.com/contact</loc></url>
+  <url><loc>https://tablejson.com/</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/guides</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/guides/extracting-tables-from-pdf-to-json</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/guides/invoice-pdf-to-excel-and-csv</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/guides/text-layer-vs-scanned-pdfs</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/guides/cleaning-messy-table-json</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/guides/bank-statement-pdfs-to-spreadsheets</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/guides/json-vs-csv-for-table-data</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/guides/automate-pdf-table-extraction</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/docs</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/docs/example</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/about</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/privacy</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/terms</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/contact</loc><lastmod>2026-10-28</lastmod></url>
 </urlset>

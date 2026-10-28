@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1210860150241703" crossorigin="anonymous"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google-adsense-account" content="ca-pub-1210860150241703">
+  <link rel="canonical" href="https://tablejson.com/guides/invoice-pdf-to-excel-and-csv">
+  <title>Invoice PDF to Excel or CSV — TableJSON</title>
+  <meta name="description" content="Turn a text-layer invoice PDF into a checksummed Excel workbook, then save CSV from the sheet that actually balanced.">
+  <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=2">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:title" content="Invoice PDF to Excel or CSV — TableJSON">
+  <meta property="og:description" content="Turn a text-layer invoice PDF into a checksummed Excel workbook, then save CSV from the sheet that actually balanced.">
+  <meta property="og:url" content="https://tablejson.com/guides/invoice-pdf-to-excel-and-csv">
+  <meta property="og:image" content="https://tablejson.com/og.png">
+  <meta name="theme-color" content="#0b0f19">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/site.css?v=4">
+</head>
+<body>
+  <header>
+    <a class="logo-container" href="/">
+      <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
+      <div class="logo-text">TableJSON</div>
+    </a>
+    <nav class="header-links">
+      <a href="/">Playground</a>
+      <a href="/guides" class="on">Guides</a>
+      <a href="/docs">Docs</a>
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </header>
+  <main class="legal">
+    <article id="article-body">
+<p class="kicker">Guide</p>
+<h2>Turn an invoice PDF into Excel or CSV</h2>
+<p>The left card on TableJSON gives you every table as JSON. The right card is narrower on purpose. It expects a text-layer invoice, maps the line items, checks the arithmetic, and downloads an <code>.xlsx</code> file. CSV is one save away from that workbook. There is no separate CSV endpoint, and inventing one would hide the checksum that makes the workbook worth opening.</p>
+<p>Use the right card when the PDF is a bill: a seller, an invoice number, lines with a quantity and a price, and a total. Press Try sample PDF if you want to see the shape first. That loads <a href="/sample-invoice.pdf">sample-invoice.pdf</a>. Preview draws the pages in the browser, up to the first twenty, so you can confirm you grabbed the right file. Extract sends the PDF twice in practice: once for the JSON preview you see on the page, and once for the workbook your browser downloads. Both calls are the same route, <code>POST /v1/invoice-xlsx</code>. The preview adds <code>?format=json</code>.</p>
+<h3>What the workbook contains</h3>
+<p>The Invoice sheet starts with six facts in column A and B: vendor, invoice number, date, currency, stated total, and checksum. Under that, row 7 is the header <code>description</code>, <code>qty</code>, <code>unit_price</code>, <code>amount</code>, <code>line_check</code>. Each line item is a row. A failed line check is painted red. Below the lines you get shipping, other, discount, tax, the stated total again, the expected total, the remainder, and the checksum repeated.</p>
+<p>A second sheet, Raw extract, keeps the first page's text lines and the tables the general extractor saw. When the Invoice sheet looks wrong, the raw sheet is where you see whether the header was read as <code>item</code> or as <code>column_1</code>. You do not have to re-upload to inspect that. It is already in the file.</p>
+<p>Vendor is taken from a nearby label: "Billed by", "Supplier", "Vendor", or "From". Invoice number looks for "Invoice No", "Invoice #", "Inv #", or "Invoice number". The date looks for "Invoice date" and skips a due date so the payment terms do not overwrite the invoice date. An ISO date stays as <code>YYYY-MM-DD</code>. Currency is detected from USD, EUR, GBP, INR, JPY, KRW, or from £, €, ₹, ¥, ₩, or $. If none of those appear, the checksum says <code>FAIL: currency unknown</code>.</p>
+<h3>What PASS and FAIL actually mean</h3>
+<p>Each line check multiplies quantity by unit price and compares it with the line amount. PASS on the line means those agreed in minor units, so a currency with two decimals is compared in cents. The total check adds the line amounts, shipping, other charges, and tax, applies the discount, and compares that with the stated total. The stated total prefers "amount due" or "balance due", then "grand total", then "total", so a subtotal is not mistaken for the amount due when both words are present.</p>
+<p>FAIL does not block the download. You still get the workbook, and cell B6 says why. The phrases are specific:</p>
+<ul>
+  <li><code>FAIL: no text layer</code> — the PDF parsed but had no text. Usually a scan.</li>
+  <li><code>FAIL: no line table</code> — there was text, but no table mapped to description, quantity, unit price, and amount.</li>
+  <li><code>FAIL: currency unknown</code> — no code or symbol was found.</li>
+  <li><code>FAIL: invoice_number missing</code> — the first page had no invoice-number label.</li>
+  <li>A remainder line — the rebuilt total and the printed total disagree. The message includes both figures and the difference.</li>
+</ul>
+<p>A red checksum is a reason to look, not a broken download. I would rather have the file and a visible FAIL than a green total that dropped a freight line. If the remainder is a few cents, look for a rounding line or a discount that was typed as a positive number in the PDF. If the remainder is the whole tax, the word on that row was probably not "tax", "VAT", "GST", or "sales tax", so it was left in the line items or dropped.</p>
+<h3>Headers the mapper accepts</h3>
+<p>Description can be headed description, item, or particulars. Quantity can be qty or quantity. Unit price can be unit price, rate, or price. Amount can be amount, line total, net, or value. The match ignores spaces, underscores, and punctuation, so "Unit Price" and "unit_price" both bind. If any of the four is missing, the sheet still builds, but the lines are not fully mapped and the checksum will not pass cleanly. Renaming a column in the source export to one of those words is faster than arguing with the mapper.</p>
+<p>Rows whose description is shipping, freight, delivery, discount, tax, VAT, GST, subtotal, or total are pulled out of the line list and used as addends. That is why a "Shipping" row should not also be counted as a product line. If your shipper names freight "Logistics surcharge", it will sit in the lines and the total check will drift. Either rename it before export or accept the remainder and fix that one cell.</p>
+<h3>From the API, then to CSV</h3>
+<p>The direct call matches the button. Omit the format query to download the workbook. <code>?format=json</code> returns the preview the playground shows: vendor, invoice number, lines, checksum, expected total, remainder.</p>
+<pre class="sample">curl -X POST "https://tablejson.com/v1/invoice-xlsx" \
+  -H "X-API-Key: YOUR_KEY" \
+  -F "file=@invoice.pdf" \
+  -o invoice.xlsx</pre>
+<pre class="sample">curl -X POST "https://tablejson.com/v1/invoice-xlsx?format=json" \
+  -H "X-API-Key: YOUR_KEY" \
+  -F "file=@invoice.pdf"</pre>
+<p>Excel and Google Sheets both open the xlsx. To get CSV, use Save As or File, Download, Comma-separated values. Do that from the Invoice sheet if you want one flat table of the lines. The metadata in rows 1 to 6 will occupy the top of the CSV, which is what you want if the vendor has to travel with the lines, and annoying if your importer expects the header on row 1. Delete those six rows first, or copy from row 7 down before you export. Numbers in the sheet are already plain values from the checksum math. The original PDF strings are on the Raw extract sheet if you need the unparsed text.</p>
+<p>Zapier has an action for this route, Invoice PDF to Excel. RapidAPI lists it on the same OpenAPI document as the table extract. <code>GET /v1/invoice-example</code> returns a tiny canned checksum so a hub tester can press Run without generating a spreadsheet. It does not read your PDF. For a real bill, POST the file.</p>
+<p>Scanned invoices are the hard stop. You will get <code>FAIL: no text layer</code> and an almost empty sheet. Run OCR in a tool that outputs a text-layer PDF, then come back, or type a three-line bill by hand. The <a href="/guides/text-layer-vs-scanned-pdfs">scan guide</a> shows the highlight test. If the JSON preview looks shifted before you even open Excel, clean the extract with the notes in <a href="/guides/cleaning-messy-table-json">cleaning messy table JSON</a>, or fix the PDF export so the four headers are real words.</p>
+<p>One habit saves rework: open B6 before you import the CSV anywhere. PASS, file the rows. Anything else, read the remainder, check one line by hand, and only then decide the PDF was the problem or the total on the invoice was.</p>
+    </article>
+  </main>
+  <footer>
+    <nav>
+      <a href="/">Playground</a>
+      <a href="/guides">Guides</a>
+      <a href="/docs">Docs</a>
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+  </footer>
+</body>
+</html>

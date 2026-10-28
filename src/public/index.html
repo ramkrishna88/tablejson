@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1210860150241703" crossorigin="anonymous"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google-adsense-account" content="ca-pub-1210860150241703">
+  <link rel="canonical" href="https://tablejson.com/">
   <title>TableJSON — PDF Table to JSON</title>
   <meta name="description" content="Extract tables from text-layer PDFs into clean JSON. Fast playground, RapidAPI, and Zapier ready.">
   <link rel="icon" href="/favicon.ico?v=2" sizes="any">
@@ -779,6 +781,54 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    .story {
+      max-width: 740px;
+      margin: 0.35rem auto 0.4rem;
+      padding: 0.2rem 0.15rem 0.4rem;
+    }
+
+    .story h2 {
+      font-size: 1.45rem;
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      margin: 0.3rem 0 0.65rem;
+    }
+
+    .story h3 {
+      font-size: 1.05rem;
+      margin: 1.25rem 0 0.4rem;
+    }
+
+    .story p, .story li {
+      color: var(--text-muted);
+      line-height: 1.7;
+      font-size: 0.98rem;
+    }
+
+    .story p + p { margin-top: 0.8rem; }
+    .story ul, .story ol { margin: 0.4rem 0 0.2rem 1.2rem; }
+    .story li { margin: 0.28rem 0; }
+    .story a { color: var(--accent-green); }
+    .story code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.86em;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.08rem 0.35rem;
+      border-radius: 6px;
+    }
+
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--accent-green);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 768px) {
+      .story { padding: 0.1rem 0.05rem 0.2rem; }
+      .story h2 { font-size: 1.28rem; }
+      .header-links { width: 100%; justify-content: flex-start; }
+    }
   </style>
 </head>
 <body>
@@ -788,18 +838,16 @@
       <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
       <div class="logo-text">TableJSON</div>
     </a>
-    <div class="header-links">
-      <a href="/home">Home</a>
+    <nav class="header-links">
+      <a href="/guides">Guides</a>
       <a href="/docs">Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
-      <a href="https://rapidapi.com/chowdaryrk077/api/tablejson" target="_blank" rel="noopener">RapidAPI Hub</a>
-      <a href="/openapi.json" target="_blank" rel="noopener">Docs</a>
-      <a href="/sample.pdf" target="_blank" rel="noopener">Sample PDF</a>
+      <a href="/sample.pdf">Sample PDF</a>
       <div class="badge">v1.0.0 — Live</div>
-    </div>
+    </nav>
   </header>
 
   <main>
@@ -927,6 +975,99 @@
         <button class="btn-secondary" onclick="downloadJSON()">💾 Download JSON</button>
       </div>
     </div>
+
+    <!-- article-body:start -->
+    <article class="story" id="article-body">
+<h2>What TableJSON does with a PDF</h2>
+<p>TableJSON reads a PDF that already contains real text, finds the lines that look like a table, and returns those rows as JSON. Drop a PDF on the left card and press Extract. The Results panel fills with a collapsible JSON tree and a paged table. Copy JSON or Download JSON leaves the response on your computer.</p>
+<p>The right card is only for invoices. Preview shows the pages. Extract downloads an Excel workbook and shows a checksum next to the line items. The checksum compares quantity times unit price with the line amount, then compares lines, tax, shipping, and discount with the total printed on the invoice. PASS means the arithmetic closed. FAIL still downloads the workbook, with the reason on the sheet, so a bad read does not pretend to balance.</p>
+<h3>Use it in four steps</h3>
+<ol>
+  <li>Confirm the PDF has a text layer. Open it and try to highlight a price. If the number highlights, TableJSON can read it. If the page is a picture of paper, stop. This site does not OCR.</li>
+  <li>Drop the file on Extract tables to JSON, or press Try sample PDF to run <a href="/sample.pdf">sample.pdf</a>. The file name and size show under the drop zone when it is ready.</li>
+  <li>Press Extract. Latency, table count, and row count land in the three boxes. The table view shows 50 rows at a time. Download JSON for every row.</li>
+  <li>For an invoice, use the right card. <a href="/sample-invoice.pdf">sample-invoice.pdf</a> shows a checksum before you use your own file. The workbook has an Invoice sheet and a Raw extract sheet.</li>
+</ol>
+<p>A direct call is the same extract without the browser. <code>POST /v1/extract-tables</code> takes the PDF in a multipart field named <code>file</code>. The playground on this host does not ask for a key. A script, Zapier, or RapidAPI call sends <code>X-API-Key</code>. See the <a href="/docs">API reference</a> and the <a href="/guides/automate-pdf-table-extraction">API guide</a>.</p>
+<h3>Where it earns its keep</h3>
+<p>Accounts teams pull line items out of digital invoices. The invoice card looks for headers such as description, item, qty, unit price, rate, and amount. Vendor, invoice number, and invoice date come from labels on the first page, including "Invoice No" and "Billed by". Currency is read from codes such as USD, EUR, GBP, and INR, or from a symbol. Tax, shipping, freight, discount, and the stated total are taken from rows whose label is that word.</p>
+<p>Bookkeepers turn statement PDFs into rows they can sort. There is no separate bank parser. You extract, then check the running balance yourself. A blank debit or credit is easy to lose, because empty cells are dropped when a line is split. The <a href="/guides/bank-statement-pdfs-to-spreadsheets">bank statement guide</a> shows that. If a source system can export CSV, prefer that. TableJSON is for the file you were sent.</p>
+<h3>What it will not do</h3>
+<p>Scanned and image-only PDFs are out. The <a href="/guides/text-layer-vs-scanned-pdfs">text-layer guide</a> shows how to tell them apart in Preview or Chrome. Columns come from the text, not from ruling lines. A line splits on a tab, a pipe, two or more spaces, or, last, commas. The first multi-cell line becomes the header. Later lines with about the same cell count are data. "Unit Price" becomes <code>unit_price</code>. Each row keeps <code>data</code> and <code>raw_cells</code>. If nothing looks like a table, you get one fallback table with <code>line_number</code> and <code>extracted_content</code>. That is the document text, not a hidden grid. Merged cells and a title in the first row are the usual reasons a result looks shifted. <a href="/guides/cleaning-messy-table-json">Cleaning messy table JSON</a> walks through those.</p>
+<p>Values stay strings. <code>00120</code> is not turned into 120, and <code>1,250.00</code> is not parsed. Convert numbers when you know whether the file uses a US or European decimal. Uploads can be 500 MB. A public URL, sent as <code>{"file":"https://..."}</code>, stops at 50 MB. The API allows 20 extracts a minute per IP, and a single request can run for about three minutes.</p>
+<h3>What happens to the file</h3>
+<p>The PDF is sent here for that request. A multipart upload is written to a temporary file, read into memory, and deleted when the response finishes. It is not put in a database or a document library. A URL fetch stays in memory for the request. Logs can include time, path, status, size, and IP address, not the document itself. If the process is killed mid-request, a temp file can sit until the platform clears it. Cookies and the Google AdSense disclosure are on the <a href="/privacy">privacy page</a>.</p>
+<h3>Questions</h3>
+<h3>Does TableJSON OCR a scanned PDF?</h3>
+<p>No. It reads the text layer only. A scan needs to be recognized somewhere else first. An invoice scan comes back as FAIL: no text layer, and the Excel file still downloads.</p>
+<h3>Do you keep my PDF?</h3>
+<p>A multipart upload is a temporary file for that request and is deleted when the response is sent. It is not added to a document library. URL fetches stay in memory for the request.</p>
+<h3>Do I need an account?</h3>
+<p>The playground on tablejson.com does not. A direct API call, Zapier, or RapidAPI does. There is no customer login on this site. Write to hello@tablejson.com for a key.</p>
+<h3>Why is the JSON one column, or a line_number table?</h3>
+<p>The text did not split into columns. That happens with scans, with words that are not spaced like a table, and with borders that are drawings rather than text. Check the PDF, or export CSV from the system that made it.</p>
+<h3>Can I get Excel or CSV?</h3>
+<p>Invoices download as .xlsx from the right-hand card or from POST /v1/invoice-xlsx. Add ?format=json for the checksum preview. Other tables return JSON. Turn the rows into CSV yourself. See <a href="/guides/json-vs-csv-for-table-data">JSON vs CSV</a>.</p>
+<h3>What are the size limits?</h3>
+<p>500 MB for an upload. 50 MB when you send a URL. Twenty extract requests a minute per IP on the API.</p>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does TableJSON OCR a scanned PDF?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. It reads the text layer only. A scan needs to be recognized somewhere else first. An invoice scan comes back as FAIL: no text layer, and the Excel file still downloads."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you keep my PDF?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A multipart upload is a temporary file for that request and is deleted when the response is sent. It is not added to a document library. URL fetches stay in memory for the request."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need an account?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The playground on tablejson.com does not. A direct API call, Zapier, or RapidAPI does. There is no customer login on this site. Write to hello@tablejson.com for a key."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is the JSON one column, or a line_number table?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The text did not split into columns. That happens with scans, with words that are not spaced like a table, and with borders that are drawings rather than text. Check the PDF, or export CSV from the system that made it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I get Excel or CSV?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Invoices download as .xlsx from the right-hand card or from POST /v1/invoice-xlsx. Add ?format=json for the checksum preview. Other tables return JSON. Turn the rows into CSV yourself."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are the size limits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "500 MB for an upload. 50 MB when you send a URL. Twenty extract requests a minute per IP on the API."
+      }
+    }
+  ]
+}
+</script>
+    </article>
+    <!-- article-body:end -->
   </main>
 
   <div class="bottomsheet-overlay" id="bottomSheet">
@@ -1675,14 +1816,15 @@
   </script>
   <footer class="site-footer">
     <nav>
-      <a href="/home">Home</a>
+      <a href="/">Playground</a>
+      <a href="/guides">Guides</a>
       <a href="/docs">Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
-    <p>Text-layer PDFs only. Uploads are not stored. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent. <a href="/openapi.json">OpenAPI</a> · <a href="https://rapidapi.com/chowdaryrk077/api/tablejson" target="_blank" rel="noopener">RapidAPI</a> · <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
   </footer>
 </body>
 </html>
