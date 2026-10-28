@@ -1,0 +1,49 @@
+<p class="kicker">Guide</p>
+<h2>JSON or CSV for table data</h2>
+<p>TableJSON returns JSON because a PDF often holds more than one grid, plus page numbers, a file name, and the raw cells beside the named ones. CSV holds a single rectangle of text. Both are honest formats. They fail in different ways, and picking the wrong one is how a column of invoice numbers turns into scientific notation on a Friday afternoon.</p>
+<p>Use the JSON when you are still checking the extract. Use CSV when a person, or an importer, has asked for a flat file and you have already decided which table, which columns, and which locale. The playground's Download JSON button is the first of those. There is no Download CSV button, on purpose.</p>
+<h3>The same two rows, both ways</h3>
+<p>This is a faithful shrink of a TableJSON table. One grid, three columns, values still strings.</p>
+<pre class="sample">{
+  "table_id": 1,
+  "page_number": 1,
+  "page_end": 1,
+  "headers": ["sku", "name", "price"],
+  "rows": [
+    { "row_index": 1, "data": { "sku": "00120", "name": "A4 paper, ream", "price": "1,250.00" }, "raw_cells": ["00120", "A4 paper, ream", "1,250.00"] },
+    { "row_index": 2, "data": { "sku": "00121", "name": "Binder", "price": "6.40" }, "raw_cells": ["00121", "Binder", "6.40"] }
+  ]
+}</pre>
+<p>A careful CSV of the <code>data</code> objects looks like this. The SKU stays text because it is quoted. The name is quoted because of the comma. The price is quoted so a spreadsheet does not eat the thousands separator and decide the row is the number 1.25.</p>
+<pre class="sample">sku,name,price
+"00120","A4 paper, ream","1,250.00"
+"00121","Binder","6.40"</pre>
+<p>Open that CSV in Excel by double-clicking and you may still lose. Excel's default importer sometimes ignores the quotes' intent for a column that looks numeric and will store <code>00120</code> as <code>120</code>. Google Sheets is gentler if you use Import and set the column to plain text. If the SKU matters, import with an explicit text format, or prefix is a bad hack and I will not recommend it. The JSON file does not have this problem. Nothing opens it and retypes the values unless your code does.</p>
+<h3>What CSV cannot carry without a fight</h3>
+<p>A response can contain two tables. A price list and a totals block are not one rectangle. CSV forces you to pick one, or to stack them with a blank line and a second header, which most importers treat as corrupt. JSON keeps them as <code>tables[0]</code> and <code>tables[1]</code> with separate headers. Page range lives on the table, not in a cell. <code>raw_cells</code> sits beside <code>data</code> so you can repair a bad header without losing the original order. A CSV of <code>data</code> alone throws <code>raw_cells</code> away. Export CSV after the cleanup in <a href="/guides/cleaning-messy-table-json">cleaning messy table JSON</a>, not before.</p>
+<p>Nested is the wrong word for what we return. Rows are flat objects. The nesting is the envelope: file, then tables, then rows. That envelope is the part people strip too early. Keep <code>filename</code>, <code>total_pages</code>, and <code>table_id</code> in a sidecar column or a second sheet if the CSV is going into a folder with fifty other extracts. Otherwise next month you will not know which PDF a row came from.</p>
+<h3>A conversion that does not get clever</h3>
+<p>This writes one CSV per table, next to the JSON, using only Node's standard library. It quotes every field. It does not parse numbers. Run it on the downloaded file.</p>
+<pre class="sample">import { readFileSync, writeFileSync } from 'node:fs';
+const payload = JSON.parse(readFileSync('extract.json', 'utf8'));
+const quote = (value) => '"' + String(value ?? '').replaceAll('"', '""') + '"';
+for (const table of payload.tables ?? []) {
+  const lines = [table.headers.map(quote).join(',')];
+  for (const row of table.rows) {
+    lines.push(table.headers.map((key) => quote(row.data[key])).join(','));
+  }
+  writeFileSync(`table-${table.table_id}.csv`, lines.join('\n') + '\n');
+}</pre>
+<p>Point that at one table you have already checked by hand. If a header is <code>column_3</code>, fix the header first. The script will faithfully title a column <code>column_3</code>. For invoices, you often do not want this script at all. <code>POST /v1/invoice-xlsx</code> returns a workbook with the checksum on it, and Sheets or Excel will export CSV from the Invoice sheet. That path is in the <a href="/guides/invoice-pdf-to-excel-and-csv">invoice to Excel guide</a>. Using the generic CSV dump on an invoice throws away <code>line_check</code> unless you build the rows from the JSON preview, which does include it.</p>
+<h3>When a colleague asks for "the Excel"</h3>
+<p>They usually mean a file they can filter. JSON is not that file. Give them CSV or xlsx after the checks, and keep the JSON in the same folder for the day you have to explain a row. Name them together: <code>harbor-april.json</code> and <code>harbor-april.csv</code>. Put the source PDF's name in a column if the sheet will outlive the folder.</p>
+<p>A few requests I push back on:</p>
+<ul>
+  <li>"Just paste the JSON into column A." That gives you one giant cell. Convert, then paste.</li>
+  <li>"Make the numbers real numbers." Say which locale. US <code>1,250.00</code> and European <code>1.250,00</code> need different parsers. The extractor leaves them as strings so it does not pick the wrong one. See the string rule in <a href="/guides/extracting-tables-from-pdf-to-json">the extract guide</a>.</li>
+  <li>"One CSV for the whole PDF." Only if you have looked at <code>tables_found</code> and it is 1, or you have decided to stack tables and the importer can take that. A statement plus a fee schedule is two files.</li>
+</ul>
+<p>For a bank feed, build the CSV from repaired rows, with debits and credits already aligned. A direct dump will reintroduce the blank-cell shift the <a href="/guides/bank-statement-pdfs-to-spreadsheets">statement guide</a> warns about. Quotes around the description are not optional. Merchant text is mostly commas.</p>
+<h3>Which one to store</h3>
+<p>Store the JSON as the extract, and store a CSV or xlsx as the thing you delivered. If they disagree, the JSON is closer to the PDF and the sheet is closer to the cleanup. Write down the cleanup. Six months later the sheet will look authoritative and the JSON will look like clutter, right up until a SKU loses its zeros and you need the original string back.</p>
+<p>If the next step is a program rather than a person, skip CSV. Pass the <code>tables</code> array along. You will save yourself a parser, a quoting bug, and a meeting about whether the comma was a separator. The <a href="/guides/automate-pdf-table-extraction">API guide</a> is that path. CSV remains the right handshake with anyone who lives in a spreadsheet and does not want a tree.</p>

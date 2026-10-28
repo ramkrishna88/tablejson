@@ -1,0 +1,64 @@
+<p class="kicker">Guide</p>
+<h2>Extracting tables from a PDF into JSON</h2>
+<p>A PDF table looks like a grid on the page and like a paragraph to most software. TableJSON sits in the middle. It reads the text layer, splits lines into cells, and returns JSON you can drop into a script or a spreadsheet. This guide is the plain version of that path: what you upload, what comes back, and how to tell a good extract from a messy one.</p>
+<p>Take a one-page supplier list. In the PDF it looks like this, with the columns spaced apart:</p>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Vendor</th><th>Invoice</th><th>Amount</th></tr></thead>
+  <tbody>
+    <tr><td>Northwind Paper</td><td>INV-1044</td><td>1,250.00</td></tr>
+    <tr><td>Harbor Freight Co</td><td>INV-1045</td><td>860.40</td></tr>
+  </tbody>
+</table>
+</div>
+<p>After Extract, the interesting part of the JSON looks like this. Headers are lowercased and punctuation is turned into underscores. Amounts stay strings, commas included, so nothing is silently rounded.</p>
+<pre class="sample">{
+  "status": "success",
+  "filename": "vendors.pdf",
+  "total_pages": 1,
+  "tables_found": 1,
+  "metadata": { "extraction_mode": "text" },
+  "tables": [{
+    "table_id": 1,
+    "page_number": 1,
+    "page_end": 1,
+    "headers": ["vendor", "invoice", "amount"],
+    "total_rows": 2,
+    "rows": [{
+      "row_index": 1,
+      "data": {
+        "vendor": "Northwind Paper",
+        "invoice": "INV-1044",
+        "amount": "1,250.00"
+      },
+      "raw_cells": ["Northwind Paper", "INV-1044", "1,250.00"]
+    }, {
+      "row_index": 2,
+      "data": {
+        "vendor": "Harbor Freight Co",
+        "invoice": "INV-1045",
+        "amount": "860.40"
+      },
+      "raw_cells": ["Harbor Freight Co", "INV-1045", "860.40"]
+    }]
+  }]
+}</pre>
+<p>Two fields matter when the keys look odd. <code>data</code> is the row as an object. <code>raw_cells</code> is the same row as an ordered list. If a header collapsed into <code>column_3</code>, the list still tells you which value was third. Keep both until you have checked a few rows by hand.</p>
+<h3>What the playground is doing</h3>
+<p>Open <a href="/">tablejson.com</a>, drop the PDF on the left card, and press Extract. You do not need an account. The three counters show how long the read took, how many tables were found, and how many rows those tables hold. JSON is a tree you can fold. Table is the same rows, 50 at a time, which is there so a long statement does not lock the browser. Fullscreen is the wide view of that table. Download JSON if you are going to keep the result. The sample button loads <a href="/sample.pdf">sample.pdf</a> from this site so you can see a successful run before you use a file you care about.</p>
+<p>The same call from a terminal is a multipart POST. The field name has to be <code>file</code>. From another host you send <code>X-API-Key</code>. From the playground you do not, because the request is same-origin.</p>
+<pre class="sample">curl -X POST https://tablejson.com/v1/extract-tables \
+  -H "X-API-Key: YOUR_KEY" \
+  -F "file=@vendors.pdf"</pre>
+<p>You can also send a public URL instead of the bytes: <code>{"file":"https://tablejson.com/sample-mini.pdf"}</code> with <code>Content-Type: application/json</code>. That path is capped at 50 MB. An upload can be up to 500 MB. Private links, localhost, and link-local addresses are refused.</p>
+<h3>How a line becomes cells</h3>
+<p>TableJSON does not look at borders. A ruled line drawn as a vector is invisible to the extractor. What it sees is the text pdf-parse already pulled out, one line at a time. A line becomes a row when it splits into two or more pieces. The split tries, in order, a tab, a pipe character, two or more spaces, and finally commas. The first line that splits becomes the header. Following lines with the same number of cells, or one cell off, are body rows. A line that does not split ends the table. A later line with a very different cell count starts a new one.</p>
+<p>That order is why a description like "Paper, A4, ream" usually survives. Real PDF text from a table almost always has wide gaps between columns, so the comma rule never runs. It is also why a CSV that someone printed to PDF with single spaces can collapse. If the only separator is a single space, the line is one cell.</p>
+<p>Empty pieces are dropped. A tab-separated row <code>02 Apr&lt;tab&gt;Card&lt;tab&gt;&lt;tab&gt;40.00</code> can lose the blank debit column and shift the balance left. When a row looks slid over by one, look at <code>raw_cells</code> and at the original line before you "fix" the header. The <a href="/guides/cleaning-messy-table-json">cleaning guide</a> is the follow-up for that.</p>
+<h3>Pages, repeats, and the fallback table</h3>
+<p><code>page_number</code> is the page where the header was seen. <code>page_end</code> is the last page that still belonged to that table. A statement that reprints Date, Description, Amount on every page usually becomes one table, because tables with the same headers are merged and the row indexes are rewritten in order. A totals block with a different shape stays its own <code>table_id</code>.</p>
+<p>If the file has text but no line ever splits, you still get JSON. <code>tables_found</code> is 1, and the only table has headers <code>line_number</code> and <code>extracted_content</code>. Read that as "here is the text, unsplit." It is useful for debugging and useless as a ledger. Common causes: the PDF is a scan, the columns are single-spaced, or the "table" is a paragraph with bold lead-ins. Highlight a cell in Chrome. If you cannot, read <a href="/guides/text-layer-vs-scanned-pdfs">text-layer PDFs and scans</a> before you upload another file.</p>
+<p>Decorative rules made of dashes or equals signs are skipped. So are a couple of sample-report banners the extractor was taught to ignore. A normal title above your table is not skipped. If that title is the first multi-cell line, it becomes the header and every real header is data. When row 1 looks like the title, promote row 2 yourself. Do not trust <code>total_rows</code> until you have glanced at the first and last row.</p>
+<h3>A small check before you automate</h3>
+<p>Pick three cells you can see on the PDF and find them in <code>raw_cells</code>. Check that the last row's amount is the last amount on the page, not a page number that got sucked into the column. Check <code>total_pages</code> against the PDF. If those three agree, the extract is good enough to script. If they do not, fix the file or clean the JSON. Looping the API over a folder of bad PDFs only multiplies the cleanup. The <a href="/guides/automate-pdf-table-extraction">API guide</a> assumes you have already done this check on one file.</p>
+<p>Numbers stay strings on purpose. <code>INV-1044</code> must not become a number, and <code>1,250.00</code> must not be guessed as twelve hundred fifty or as one point two five. Parse them in the step that knows the locale. JSON is the right container while the table still carries page numbers and more than one grid. If a colleague asked for a flat file, the <a href="/guides/json-vs-csv-for-table-data">JSON versus CSV guide</a> shows a direct conversion that does not drop <code>raw_cells</code> until you are sure you do not need it.</p>

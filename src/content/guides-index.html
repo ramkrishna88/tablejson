@@ -1,0 +1,14 @@
+<p class="kicker">Guides</p>
+<h2>Guides</h2>
+<p>These are the notes I wish a PDF had shipped with. TableJSON reads a text layer and returns rows. The playground is enough for one file. The pages below are for the second file, when the header is wrong, the statement has a blank credit column, or you are about to loop the API over a folder.</p>
+<p>Each guide uses the real response shape: <code>headers</code>, <code>raw_cells</code>, <code>page_number</code>, <code>page_end</code>, and, for invoices, the PASS or FAIL checksum. Nothing here describes an OCR mode. There is not one. If you only remember a single check, highlight a number in the PDF before you upload it.</p>
+<div class="guide-grid">
+  <a class="guide-card" href="/guides/extracting-tables-from-pdf-to-json"><strong>Extracting tables from a PDF into JSON</strong><span>What the playground and POST /v1/extract-tables return, how a line becomes cells, and how to spot a fallback line_number table.</span></a>
+  <a class="guide-card" href="/guides/invoice-pdf-to-excel-and-csv"><strong>Turn an invoice PDF into Excel or CSV</strong><span>The checksum workbook, which headers map, why FAIL still downloads, and how to save the sheet as CSV without losing the vendor.</span></a>
+  <a class="guide-card" href="/guides/text-layer-vs-scanned-pdfs"><strong>Text-layer PDFs and scanned PDFs</strong><span>The highlight test, what a scan returns, and why OCR has to happen before this site ever sees the file.</span></a>
+  <a class="guide-card" href="/guides/cleaning-messy-table-json"><strong>Cleaning messy table JSON</strong><span>Titles that became headers, columns that slid left, page furniture, and a five-line check before you import.</span></a>
+  <a class="guide-card" href="/guides/bank-statement-pdfs-to-spreadsheets"><strong>Bank statement PDFs into a spreadsheet</strong><span>No special bank parser. How blank debit and credit cells shift the balance, and the opening-balance row that double-counts.</span></a>
+  <a class="guide-card" href="/guides/json-vs-csv-for-table-data"><strong>JSON or CSV for table data</strong><span>Why the API returns JSON, when a quoted CSV is what a colleague actually wanted, and how SKUs lose their zeros.</span></a>
+  <a class="guide-card" href="/guides/automate-pdf-table-extraction"><strong>Automating PDF table extraction with the API</strong><span>Keys, the 500 MB and 50 MB limits, a folder loop, and the status fields that should stop a scan from posting.</span></a>
+</div>
+<p>The short version of the same facts is on the <a href="/">playground page</a>, under the tool. Request fields and error codes are on <a href="/docs">the API reference</a>.</p>

@@ -4,61 +4,76 @@
   <meta charset="UTF-8">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1210860150241703" crossorigin="anonymous"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google-adsense-account" content="ca-pub-1210860150241703">
+  <link rel="canonical" href="https://tablejson.com/terms">
   <title>Terms — TableJSON</title>
-  <meta name="description" content="Terms of use for the TableJSON playground and API.">
+  <meta name="description" content="Terms of use for the TableJSON playground and API, including file rights, limits, ads, and no warranty.">
   <link rel="icon" href="/favicon.ico?v=2" sizes="any">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=2">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
   <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:title" content="Terms — TableJSON">
+  <meta property="og:description" content="Terms of use for the TableJSON playground and API, including file rights, limits, ads, and no warranty.">
+  <meta property="og:url" content="https://tablejson.com/terms">
   <meta property="og:image" content="https://tablejson.com/og.png">
   <meta name="theme-color" content="#0b0f19">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/site.css">
+  <link rel="stylesheet" href="/site.css?v=4">
 </head>
 <body>
   <header>
-    <a class="logo-container" href="/home">
+    <a class="logo-container" href="/">
       <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
       <div class="logo-text">TableJSON</div>
     </a>
     <nav class="header-links">
-      <a href="/home">Home</a>
       <a href="/">Playground</a>
+      <a href="/guides">Guides</a>
       <a href="/docs">Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
-      <a class="on" href="/terms">Terms</a>
+      <a href="/terms" class="on">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
   </header>
   <main class="legal">
-    <h2>Terms</h2>
-    <p>Last updated: 19 September 2026</p>
-    <p>These terms cover the TableJSON website and API at tablejson.com. By using the playground or API, you agree to them.</p>
-    <h3>Use</h3>
-    <p>You may upload PDFs you have the right to process. Extraction is best-effort on text-layer tables. Scanned or image-only PDFs will not return tables. Check the JSON before you rely on it.</p>
-    <h3>API and playground</h3>
-    <p>The hosted playground is for trying extract on this site. API access may require a key and is subject to rate and file-size limits. We may change, pause, or stop the service.</p>
-    <h3>No warranty</h3>
-    <p>The service is provided as is. We are not liable for missed tables, incorrect cells, or downtime. You are responsible for checking the output before you share it.</p>
-    <h3>Contact</h3>
-    <p>Questions about these terms:</p>
-    <a class="email" href="mailto:hello@tablejson.com">hello@tablejson.com</a>
+    <article id="article-body">
+<p class="kicker">Terms</p>
+<h2>Terms</h2>
+<p>Last updated: 28 October 2026</p>
+<p>These terms cover the TableJSON website and API at tablejson.com, run by Venkata Naidu. Using the playground or the API means you agree to them. If you do not, do not upload a file and do not call the routes.</p>
+<h3>What you may send</h3>
+<p>Upload PDFs you have the right to process. That includes files you own and files a client has asked you to convert. It does not include a file you found, a file someone asked you not to move off their system, or a scan of a document you are not supposed to copy. You are responsible for the contents of what you send.</p>
+<h3>What the service actually does</h3>
+<p>Extraction reads the text layer and returns tables as JSON. Invoice mode builds an Excel workbook and a checksum. Both are best effort. Scanned or image-only PDFs will not grow a text layer here. Columns are inferred from spacing and separators, so merged cells and awkward layouts can shift. Values stay strings until you parse them. Check the output before you rely on it, pay from it, or import it into a ledger. A PASS checksum is a check of the arithmetic we could see, not a guarantee that the vendor billed you correctly.</p>
+<p>The <a href="/">playground</a> is for trying this on the site. API access needs a key except for the same-origin playground, the health check, and the canned examples. Limits include file size (500 MB upload, 50 MB for a URL fetch) and a rate limit on extract routes. We can change, pause, or stop the service, and we can refuse a key or a workload that threatens the host.</p>
+<h3>Keys and other people's platforms</h3>
+<p>Keep API keys secret. You are responsible for calls made with your key. RapidAPI and Zapier are separate services with their own terms. A listing there does not change these terms for traffic that hits tablejson.com.</p>
+<h3>Advertising</h3>
+<p>Pages may show ads through Google AdSense, publisher ca-pub-1210860150241703. The <a href="/privacy">privacy page</a> explains the cookies that involves and how to opt out of personalized ads. Ads are not an endorsement of the advertiser, and the advertiser does not get your uploaded PDF from us.</p>
+<h3>No warranty</h3>
+<p>The site and API are provided as is. To the extent the law allows, we are not liable for missed tables, shifted cells, a wrong total, downtime, lost profit, or a decision you made from the output. The remedy if you do not like the result is to stop using the service. Some places do not allow a limit like that. In those places the limit applies as far as it legally can.</p>
+<h3>These terms can change</h3>
+<p>If the terms change, the date at the top changes. Continuing to use the site after that means you accept the new terms. The current copy is always this page.</p>
+<h3>Contact</h3>
+<p>Questions about these terms:</p>
+<p><a class="email" href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+    </article>
   </main>
   <footer>
     <nav>
-      <a href="/home">Home</a>
       <a href="/">Playground</a>
+      <a href="/guides">Guides</a>
       <a href="/docs">Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
-    <p>Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
   </footer>
 </body>
 </html>

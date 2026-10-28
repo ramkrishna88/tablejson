@@ -1,0 +1,52 @@
+<p class="kicker">Guide</p>
+<h2>Cleaning messy table JSON</h2>
+<p>A clean extract is boring. <code>headers</code> match the PDF, every <code>raw_cells</code> list has the same length, and the last amount on the page is the last amount in the JSON. Most files are a step away from that. This guide is the cleanup I actually do before a table is allowed near a spreadsheet: look at the first row, the last row, and one row in the middle, then fix the specific mess instead of rewriting the whole parser.</p>
+<p>Start from Download JSON on the <a href="/">playground</a>, or from the <code>tables</code> array of <code>POST /v1/extract-tables</code>. Do the cleanup in your own script or sheet. TableJSON does not store the file, and it will not remember your fixes. The temporary copy of the PDF is deleted when the response is sent.</p>
+<h3>The title became the header</h3>
+<p>The extractor treats the first line that splits into columns as the header. A report that begins <code>Q3 price list    confidential</code> can steal that role, and the real header becomes row 1. You see keys like <code>q3_price_list</code> and <code>confidential</code>, and the amounts live under the wrong names.</p>
+<p>Fix: if row 1's <code>raw_cells</code> look like labels ("Item", "Sku", "Price") and the header keys look like a sentence, promote row 1. In a spreadsheet, insert those cells as column names and delete that row. In a script, zip them yourself:</p>
+<pre class="sample">const table = payload.tables[0];
+const header = table.rows[0].raw_cells.map((cell) =>
+  cell.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
+);
+const dataRows = table.rows.slice(1).map((row) =>
+  Object.fromEntries(header.map((key, i) => [key, row.raw_cells[i] ?? '']))
+);</pre>
+<p>Keep the original <code>headers</code> until the promotion looks right. <code>raw_cells</code> is the source of truth during cleanup because it does not depend on a bad key. The <a href="/guides/extracting-tables-from-pdf-to-json">extract guide</a> shows why both fields exist.</p>
+<h3>A column slid left</h3>
+<p>Empty cells are discarded when a line is split. A statement row with a blank debit, stored in the PDF as a wide gap, sometimes survives as two spaces and sometimes does not. When it does not, credit and balance move left and a later row that has both numbers looks longer. The symptom is a column of amounts that alternates between a small purchase and a huge running balance.</p>
+<p>Do not average them. Print <code>raw_cells.length</code> for every row and the header length. The short rows are the ones that lost a blank. For a debit/credit statement, the repair is usually: if the row has four cells and the header has five, insert an empty string at the debit or credit index, whichever side the PDF leaves blank. Check it against two rows you can see. Guessing the index from a single row will corrupt the file. There is a worked statement in the <a href="/guides/bank-statement-pdfs-to-spreadsheets">bank statement guide</a>.</p>
+<h3>Page furniture in the data</h3>
+<p>Page numbers, "continued", and a repeated header in the body all show up as ordinary rows. A merged multi-page table is supposed to drop a repeated header when the headers match, and it usually does. A header that changed case or gained an extra gap can sneak through as data. So can "Page 2 of 6" if that line happened to contain two chunks of text.</p>
+<p>Filter after the extract, not before:</p>
+<ul>
+  <li>Drop a row whose joined <code>raw_cells</code> match the header words.</li>
+  <li>Drop a row that is only a page counter. A single cell matching <code>/^page \d+/i</code> is safe. A row that merely contains the word "page" inside a description is not.</li>
+  <li>Drop a trailing row that says "Total" only after you have copied that total aside to check the sum. Deleting it first removes your checksum.</li>
+</ul>
+<p>Sort is a poor cleaner. Dates like <code>02 Apr</code> and <code>15 Apr</code> do not sort as time, and invoice numbers with a prefix sort as text. Clean, then parse, then sort.</p>
+<h3>Keys you cannot say out loud</h3>
+<p><code>column_3</code>, <code>column_4</code>, and a key that is a single underscore-stripped blob mean the header cell was empty or was a symbol. The sanitizer lowercases, replaces anything that is not a letter or digit with <code>_</code>, and if nothing remains it uses <code>column_</code> plus the index. Currency symbols in the header are a common cause. "Amount ($)" becomes <code>amount_</code> with a trailing underscore stripped, which is fine, but a header that is only "$" becomes <code>column_2</code>.</p>
+<p>Rename from <code>raw_cells</code> positions you have verified, and write the rename down. Next month's file will do it again. A ten-line map beats a clever inferrer:</p>
+<pre class="sample">const rename = { column_2: 'amount_usd', item_name: 'description' };
+for (const row of table.rows) {
+  for (const [from, to] of Object.entries(rename)) {
+    if (from in row.data) {
+      row.data[to] = row.data[from];
+      delete row.data[from];
+    }
+  }
+}</pre>
+<p>Leave values as strings while you rename. <code>00120</code> is a SKU until a human says it is a number. <code>1.250,00</code> and <code>1,250.00</code> are both plausible and they are not the same amount. Parse with an explicit locale at the edge of the importer. The <a href="/guides/json-vs-csv-for-table-data">JSON versus CSV</a> note covers the same trap when someone opens the file in Excel and the sheet "helps."</p>
+<h3>Two tables that became one, or one that became two</h3>
+<p>Tables with the same header text are merged, and <code>page_end</code> stretches to cover them. That is what you want for a statement that repeats its header. It is wrong when two different price lists share the columns Item and Price and were only separated by a blank line that did not survive. Look at <code>page_number</code> and at a sudden change in the kind of values. If office chairs start appearing under a grocery list, split on the row where the pattern changes and restore two <code>table_id</code>s.</p>
+<p>The opposite problem is a new table every time the cell count wobbles by more than one. A wrapped description that landed on its own line ends the table early, and the next line opens a new one with a bad header. You can see it: <code>tables_found</code> is 6 on a one-page invoice. Concatenate tables whose later "header" is actually data, using <code>raw_cells</code>, and accept that a wrapped description may need to be joined to the previous row by hand. If this happens on every file from one vendor, ask them for CSV. Cleaning is for the occasional PDF, not for a layout that fights you monthly.</p>
+<h3>A checklist that fits on a sticky note</h3>
+<ol>
+  <li>Header keys name the columns you see, or you have renamed them from <code>raw_cells</code>.</li>
+  <li>Every data row has the same <code>raw_cells</code> length as the header, after you reinsert known blanks.</li>
+  <li>Row 1 is not the title, and the last row is not a page number.</li>
+  <li>Three values copied off the PDF match the JSON exactly, including commas.</li>
+  <li>A total you compute from the amount column matches the total printed on the page, or you know why it does not.</li>
+</ol>
+<p>If item 5 fails by the tax, you dropped an addend. If it fails by one row's amount, a shift ate a cell. If the JSON is a single <code>line_number</code> table, stop cleaning and go back to the PDF. That shape means the text never split, which is the subject of the <a href="/guides/text-layer-vs-scanned-pdfs">text-layer guide</a>, not of a rename map.</p>

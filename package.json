@@ -8,7 +8,7 @@
     "build": "tsc && rm -rf dist/public && cp -r src/public dist/public",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
-    "test": "tsx --test src/services/invoiceWorkbook.test.ts",
+    "test": "TABLEJSON_NO_LISTEN=1 tsx --test src/services/invoiceWorkbook.test.ts src/adsenseSmoke.test.ts",
     "test:sample": "tsx scripts/test-extraction.ts"
   },
   "keywords": [

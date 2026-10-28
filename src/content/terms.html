@@ -1,0 +1,20 @@
+<p class="kicker">Terms</p>
+<h2>Terms</h2>
+<p>Last updated: 28 October 2026</p>
+<p>These terms cover the TableJSON website and API at tablejson.com, run by Venkata Naidu. Using the playground or the API means you agree to them. If you do not, do not upload a file and do not call the routes.</p>
+<h3>What you may send</h3>
+<p>Upload PDFs you have the right to process. That includes files you own and files a client has asked you to convert. It does not include a file you found, a file someone asked you not to move off their system, or a scan of a document you are not supposed to copy. You are responsible for the contents of what you send.</p>
+<h3>What the service actually does</h3>
+<p>Extraction reads the text layer and returns tables as JSON. Invoice mode builds an Excel workbook and a checksum. Both are best effort. Scanned or image-only PDFs will not grow a text layer here. Columns are inferred from spacing and separators, so merged cells and awkward layouts can shift. Values stay strings until you parse them. Check the output before you rely on it, pay from it, or import it into a ledger. A PASS checksum is a check of the arithmetic we could see, not a guarantee that the vendor billed you correctly.</p>
+<p>The <a href="/">playground</a> is for trying this on the site. API access needs a key except for the same-origin playground, the health check, and the canned examples. Limits include file size (500 MB upload, 50 MB for a URL fetch) and a rate limit on extract routes. We can change, pause, or stop the service, and we can refuse a key or a workload that threatens the host.</p>
+<h3>Keys and other people's platforms</h3>
+<p>Keep API keys secret. You are responsible for calls made with your key. RapidAPI and Zapier are separate services with their own terms. A listing there does not change these terms for traffic that hits tablejson.com.</p>
+<h3>Advertising</h3>
+<p>Pages may show ads through Google AdSense, publisher ca-pub-1210860150241703. The <a href="/privacy">privacy page</a> explains the cookies that involves and how to opt out of personalized ads. Ads are not an endorsement of the advertiser, and the advertiser does not get your uploaded PDF from us.</p>
+<h3>No warranty</h3>
+<p>The site and API are provided as is. To the extent the law allows, we are not liable for missed tables, shifted cells, a wrong total, downtime, lost profit, or a decision you made from the output. The remedy if you do not like the result is to stop using the service. Some places do not allow a limit like that. In those places the limit applies as far as it legally can.</p>
+<h3>These terms can change</h3>
+<p>If the terms change, the date at the top changes. Continuing to use the site after that means you accept the new terms. The current copy is always this page.</p>
+<h3>Contact</h3>
+<p>Questions about these terms:</p>
+<p><a class="email" href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>

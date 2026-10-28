@@ -17,6 +17,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
   background-image:
     radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
     radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.12) 0%, transparent 40%);
@@ -91,6 +92,7 @@ main.legal p + p { margin-top: 0.85rem; }
 main.legal ul, main.legal ol { margin: 0.6rem 0 0 1.15rem; }
 main.legal li { margin: 0.3rem 0; }
 main.legal code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.86em;
   color: var(--text-main);
   background: rgba(255, 255, 255, 0.06);
@@ -98,6 +100,64 @@ main.legal code {
   border-radius: 6px;
 }
 main.legal a { color: var(--accent-green); }
+main.legal h2 { line-height: 1.25; }
+.kicker {
+  color: var(--accent-green);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+.guide-grid { display: grid; gap: 0.75rem; margin-top: 1rem; }
+a.guide-card {
+  display: block;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.03);
+}
+a.guide-card strong { display: block; color: var(--text-main); margin-bottom: 0.28rem; font-size: 1rem; font-weight: 700; }
+a.guide-card span { color: var(--text-muted); font-size: 0.92rem; line-height: 1.55; }
+a.guide-card:hover { border-color: rgba(16, 185, 129, 0.45); }
+.table-scroll { overflow-x: auto; margin: 0.75rem 0 1rem; }
+.table-scroll table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.table-scroll th, .table-scroll td {
+  border: 1px solid var(--card-border);
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+}
+.table-scroll th { color: var(--accent-green); font-weight: 600; }
+.contact-form { display: grid; gap: 0.75rem; margin-top: 0.9rem; }
+.contact-form label { display: grid; gap: 0.32rem; color: var(--text-main); font-size: 0.88rem; font-weight: 600; }
+.contact-form input, .contact-form textarea {
+  width: 100%;
+  padding: 0.7rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 16px;
+}
+.contact-form button {
+  justify-self: start;
+  background: var(--accent-green);
+  color: #04110b;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.72rem 1.05rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.form-note { font-size: 0.85rem !important; }
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent-green);
+  outline-offset: 2px;
+}
 
 .cta-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.1rem 0 0.3rem; }
 a.cta, a.cta-ghost {
@@ -114,9 +174,11 @@ main.legal a.cta-ghost,
 a.cta-ghost { border: 1px solid var(--card-border); color: var(--text-main); }
 pre.sample {
   overflow-x: auto;
+  max-width: 100%;
   background: rgba(0, 0, 0, 0.35);
   padding: 0.95rem 1rem;
   border-radius: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.78rem;
   line-height: 1.45;
   margin-top: 0.6rem;
@@ -153,6 +215,9 @@ footer a { color: var(--text-muted); text-decoration: none; }
 footer a:hover { color: var(--text-main); }
 
 @media (max-width: 768px) {
-  header { padding: 1rem; flex-wrap: wrap; }
-  main.legal { padding: 1.2rem 1.05rem 1.4rem; }
+  header { padding: 0.9rem 0.85rem; flex-wrap: wrap; align-items: flex-start; }
+  .header-links { width: 100%; justify-content: flex-start; gap: 0.55rem 0.7rem; }
+  .header-links a { font-size: 0.8rem; }
+  main.legal { padding: 1.15rem 1rem 1.35rem; margin-top: 1rem; }
+  .contact-form button { width: 100%; }
 }

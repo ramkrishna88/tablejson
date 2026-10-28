@@ -1,0 +1,36 @@
+<p class="kicker">Privacy</p>
+<h2>Privacy</h2>
+<p>Last updated: 28 October 2026</p>
+<p>TableJSON is operated by Venkata Naidu. This page covers the playground and API at tablejson.com: the PDFs you send, the logs the server writes, the cookies this site does and does not set, and the advertising from Google AdSense. Questions go to <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>.</p>
+<h3>Files you upload</h3>
+<p>When you extract a table or build an invoice workbook, the PDF is sent to the TableJSON server for that request. A multipart upload is written to a temporary file in the server's temp directory by the upload library, then read into memory so the text layer can be parsed. When the response finishes, that library deletes the temp file. TableJSON does not put the PDF, the JSON, or the workbook into a database or a document library. There is no account page where old uploads can be opened later.</p>
+<p>A PDF sent as a public URL is downloaded into memory for the request. That path does not write the file out. Private addresses, including localhost, are refused.</p>
+<p>If the process is killed in the middle of a request, a temp file can remain until the host clears its temp directory. That is a crash leftover, not a retained copy. Logs can include the time, path, status code, size, IP address, and a short error string. They are not a copy of the PDF. Do not upload a file you are not allowed to process. A bank statement is still sensitive for the seconds it is in flight, which is why the <a href="/guides/bank-statement-pdfs-to-spreadsheets">statement guide</a> says so in plain language.</p>
+<p>The playground keeps the file in your browser only for the session, so it can show a preview and post the bytes. Closing the tab drops that. Download JSON or the workbook if you want a copy. We do not get that download back.</p>
+<h3>Accounts, keys, and email</h3>
+<p>The playground does not need an account or an API key. Direct API calls and Zapier use a key you configure. RapidAPI authenticates through RapidAPI. Keys are secrets. Do not send one by email unless we ask you to rotate it. The contact form on this site does not post the message to our server. It opens your email app addressed to hello@tablejson.com. If you hit send, your mail provider delivers it like any other message you write.</p>
+<h3>Cookies</h3>
+<p>TableJSON itself does not set account cookies, session cookies, or analytics cookies. There is no login and no first-party tracker. The pages do load Google's AdSense script, <code>adsbygoogle.js</code>, for publisher <code>ca-pub-1210860150241703</code>. That script is served by Google and may set or read cookies, including on advertising domains, to deliver and measure ads and to limit how often you see the same one. Those are Google's cookies, not cookies named by this site.</p>
+<h3>Advertising and Google AdSense</h3>
+<p>We use Google AdSense to show ads. Google, as a third-party vendor, uses cookies to serve ads based on your visits to this site and other sites on the Internet. The ads you see are chosen and measured by Google under their own rules. We do not sell the contents of uploaded PDFs, and ad targeting is not fed from the tables you extract.</p>
+<p>Google's advertising policies and the description of how Google uses data are here:</p>
+<ul>
+  <li><a href="https://support.google.com/adsense/answer/48182" rel="noopener">AdSense program policies</a></li>
+  <li><a href="https://policies.google.com/technologies/ads" rel="noopener">How Google uses cookies in advertising</a></li>
+  <li><a href="https://policies.google.com/privacy" rel="noopener">Google privacy policy</a></li>
+  <li><a href="https://policies.google.com/technologies/partner-sites" rel="noopener">How Google uses information from sites that use its services</a></li>
+</ul>
+<h3>How to opt out of personalized ads</h3>
+<p>You can turn off personalized advertising, or manage the cookies behind it, without emailing us. These are Google's and the industry opt-out pages:</p>
+<ul>
+  <li><a href="https://adssettings.google.com/" rel="noopener">Google Ads Settings</a>, where you can switch off ad personalization for the Google account in the browser</li>
+  <li><a href="https://myadcenter.google.com/" rel="noopener">My Ad Center</a>, the same controls in Google's current page</li>
+  <li><a href="https://www.aboutads.info/choices" rel="noopener">YourAdChoices</a> (Digital Advertising Alliance) for participating companies</li>
+  <li><a href="https://optout.networkadvertising.org/" rel="noopener">NAI opt-out</a> for network advertisers</li>
+</ul>
+<p>Blocking third-party cookies in your browser also stops most of these cookies. An ad may still appear. It just will not be personalized from a profile. The European Interactive Digital Advertising Alliance has a similar page at <a href="https://www.youronlinechoices.eu/" rel="noopener">youronlinechoices.eu</a> if you are in that region.</p>
+<h3>Other sites</h3>
+<p>RapidAPI, Zapier, and your email provider are their own services once you leave tablejson.com. Their privacy terms apply there. A link in a guide does not move your PDF to that site.</p>
+<h3>Contact</h3>
+<p>Privacy requests, including a question about a file you uploaded, go to the address below. Include the time of the request and the route you called. Do not include the PDF unless we need it to debug, and say so in the mail if the file contains someone else's data.</p>
+<p><a class="email" href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
