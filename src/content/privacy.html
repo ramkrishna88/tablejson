@@ -1,14 +1,14 @@
 <p class="kicker">Privacy</p>
 <h2>Privacy</h2>
 <p>Last updated: 28 October 2026</p>
-<p>TableJSON is operated by Venkata Naidu. This page covers the playground and API at tablejson.com: the PDFs you send, the logs the server writes, the cookies this site does and does not set, and the advertising from Google AdSense. Questions go to <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>.</p>
+<p>TableJSON is operated by Venkata Naidu. This page covers the playground and API at tablejson.com: the PDFs you send, the logs the server writes, the cookies this site does and does not set, and the advertising from Google AdSense. Questions go through the <a href="/contact">contact page</a>.</p>
 <h3>Files you upload</h3>
 <p>When you extract a table or build an invoice workbook, the PDF is sent to the TableJSON server for that request. A multipart upload is written to a temporary file in the server's temp directory by the upload library, then read into memory so the text layer can be parsed. When the response finishes, that library deletes the temp file. TableJSON does not put the PDF, the JSON, or the workbook into a database or a document library. There is no account page where old uploads can be opened later.</p>
 <p>A PDF sent as a public URL is downloaded into memory for the request. That path does not write the file out. Private addresses, including localhost, are refused.</p>
 <p>If the process is killed in the middle of a request, a temp file can remain until the host clears its temp directory. That is a crash leftover, not a retained copy. Logs can include the time, path, status code, size, IP address, and a short error string. They are not a copy of the PDF. Do not upload a file you are not allowed to process. A bank statement is still sensitive for the seconds it is in flight, which is why the <a href="/guides/bank-statement-pdfs-to-spreadsheets">statement guide</a> says so in plain language.</p>
 <p>The playground keeps the file in your browser only for the session, so it can show a preview and post the bytes. Closing the tab drops that. Download JSON or the workbook if you want a copy. We do not get that download back.</p>
 <h3>Accounts, keys, and email</h3>
-<p>The playground does not need an account or an API key. Direct API calls and Zapier use a key you configure. RapidAPI authenticates through RapidAPI. Keys are secrets. Do not send one by email unless we ask you to rotate it. The contact form on this site does not post the message to our server. It opens your email app addressed to hello@tablejson.com. If you hit send, your mail provider delivers it like any other message you write.</p>
+<p>The playground does not need an account or an API key. Direct API calls and Zapier use a key you configure. RapidAPI authenticates through RapidAPI. Keys are secrets. Do not send one by email unless we ask you to rotate it. The contact form lives only on the <a href="/contact">contact page</a>. It opens your email app and does not post the message to this server.</p>
 <h3>Cookies</h3>
 <p>TableJSON itself does not set account cookies, session cookies, or analytics cookies. There is no login and no first-party tracker. The pages do load Google's AdSense script, <code>adsbygoogle.js</code>, for publisher <code>ca-pub-1210860150241703</code>. That script is served by Google and may set or read cookies, including on advertising domains, to deliver and measure ads and to limit how often you see the same one. Those are Google's cookies, not cookies named by this site.</p>
 <h3>Advertising and Google AdSense</h3>
@@ -32,5 +32,4 @@
 <h3>Other sites</h3>
 <p>RapidAPI, Zapier, and your email provider are their own services once you leave tablejson.com. Their privacy terms apply there. A link in a guide does not move your PDF to that site.</p>
 <h3>Contact</h3>
-<p>Privacy requests, including a question about a file you uploaded, go to the address below. Include the time of the request and the route you called. Do not include the PDF unless we need it to debug, and say so in the mail if the file contains someone else's data.</p>
-<p><a class="email" href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+<p>Privacy requests go through the <a href="/contact">contact page</a>. Include the time of the request and the route you called. Do not include the PDF unless we need it to debug.</p>

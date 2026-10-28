@@ -187,7 +187,7 @@ await fastify.register(fastifyStatic, {
   }
 });
 
-const sitePages = ['about', 'privacy', 'contact', 'terms', 'docs'] as const;
+const sitePages = ['about', 'privacy', 'contact', 'terms', 'docs', 'how-it-works', 'faq'] as const;
 for (const page of sitePages) {
   fastify.get(`/${page}`, async (_request, reply) => reply.sendFile(`${page}.html`));
 }

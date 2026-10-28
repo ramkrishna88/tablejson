@@ -1,33 +1,40 @@
 <p class="kicker">Contact</p>
-<h2>Contact</h2>
-<p>The inbox for TableJSON is <a href="mailto:hello@tablejson.com">hello@tablejson.com</a>. That address reaches Venkata Naidu, who runs the site. Use it for a failed extract, an API key, a privacy question, or a report that a page is broken. There is no live chat and no ticket portal.</p>
-<p>The form below does not store the message on this server. Submit opens your email app with the To, subject, and body filled in. You still press send there. If you have no mail app, write to the address directly.</p>
-<form class="contact-form" id="contact-form" action="mailto:hello@tablejson.com" method="post" enctype="text/plain">
-  <label>Name
-    <input name="name" autocomplete="name" required maxlength="120">
-  </label>
-  <label>Email
-    <input name="email" type="email" autocomplete="email" required maxlength="200">
-  </label>
-  <label>What is this about?
-    <input name="topic" required maxlength="160" placeholder="Playground, API key, privacy, something else">
-  </label>
-  <label>Message
-    <textarea name="message" required minlength="10" maxlength="5000" rows="6" placeholder="What you tried, the time, and any error code."></textarea>
-  </label>
-  <button type="submit">Email hello@tablejson.com</button>
-  <p class="form-note">Nothing is saved on TableJSON when you submit. Your email app sends the message if you confirm it.</p>
-</form>
-<h3>What helps</h3>
-<ul>
-  <li>Whether you used the <a href="/">playground</a>, a direct API call, Zapier, or RapidAPI.</li>
-  <li>The time of the request and any error code, such as <code>INVALID_PDF</code> or <code>429</code>.</li>
-  <li>The route: <code>/v1/extract-tables</code> or <code>/v1/invoice-xlsx</code>.</li>
-  <li>A description of the columns. "Date, debit, credit, balance, and the credit cell was blank" is enough to point at a known limit.</li>
-</ul>
-<p>Do not send live API keys, passwords, or a customer's full statement unless we have asked for a file and you are allowed to share it. A redacted page or the sample PDFs on this site (<a href="/sample.pdf">sample.pdf</a>, <a href="/sample-invoice.pdf">sample-invoice.pdf</a>) are safer reproductions.</p>
-<h3>Where things live</h3>
-<p>The tool and the write-up of what it does are on <a href="/">tablejson.com</a>. Longer notes are under <a href="/guides">Guides</a>. Request and response shapes are on <a href="/docs">the API reference</a>. Privacy, including AdSense and cookies, is on <a href="/privacy">the privacy page</a>. Terms are on <a href="/terms">the terms page</a>.</p>
+<h2>Talk to the person who runs it</h2>
+<div class="split-2">
+  <section class="card">
+    <h3>Send a note</h3>
+    <p>The form does not store the message here. Submit opens your email app with the note filled in. You still press send there.</p>
+    <form class="contact-form" id="contact-form" action="mailto:hello@tablejson.com" method="post" enctype="text/plain">
+      <label>Name
+        <input name="name" autocomplete="name" required maxlength="120">
+      </label>
+      <label>Email
+        <input name="email" type="email" autocomplete="email" required maxlength="200">
+      </label>
+      <label>Topic
+        <input name="topic" required maxlength="160" placeholder="Playground, API key, privacy">
+      </label>
+      <label>Message
+        <textarea name="message" required minlength="10" maxlength="5000" rows="5" placeholder="What you tried, the time, and any error code."></textarea>
+      </label>
+      <button type="submit">Email hello@tablejson.com</button>
+      <p class="form-note">Nothing is saved on TableJSON when you submit.</p>
+    </form>
+  </section>
+  <section class="card">
+    <h3>Inbox</h3>
+    <p>The address reaches Venkata Naidu. Use it for a failed extract, an API key, a privacy question, or a broken page. There is no live chat.</p>
+    <a class="email" href="mailto:hello@tablejson.com">hello@tablejson.com</a>
+    <h3>What helps</h3>
+    <ul>
+      <li>Playground, direct API, Zapier, or RapidAPI.</li>
+      <li>The time, and any code such as <code>INVALID_PDF</code> or <code>429</code>.</li>
+      <li>The route: <code>/v1/extract-tables</code> or <code>/v1/invoice-xlsx</code>.</li>
+      <li>The columns, in a sentence. Skip live keys and full statements.</li>
+    </ul>
+    <p>Samples you can share: <a href="/sample.pdf">sample.pdf</a> and <a href="/sample-invoice.pdf">sample-invoice.pdf</a>. The tool is on the <a href="/">home page</a>. Shapes are on <a href="/docs">the API reference</a>.</p>
+  </section>
+</div>
 <script>
   document.getElementById('contact-form').addEventListener('submit', (event) => {
     event.preventDefault();

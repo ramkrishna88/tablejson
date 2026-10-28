@@ -1,0 +1,41 @@
+<p class="kicker">FAQ</p>
+<h2>Questions about the tool</h2>
+<p>Short answers. The longer version of the extract itself is on <a href="/how-it-works">How it works</a>.</p>
+<details class="faq" open>
+  <summary>Does TableJSON OCR a scanned PDF?</summary>
+  <p>No. It reads the text layer only. A scan needs to be recognized somewhere else first. An invoice scan comes back as FAIL: no text layer, and the Excel file still downloads.</p>
+</details>
+<details class="faq">
+  <summary>Do you keep my PDF?</summary>
+  <p>A multipart upload is a temporary file for that request and is deleted when the response is sent. It is not added to a document library. URL fetches stay in memory for the request.</p>
+</details>
+<details class="faq">
+  <summary>Do I need an account?</summary>
+  <p>The playground on tablejson.com does not. A direct API call, Zapier, or RapidAPI does. There is no customer login on this site. Ask for a key on the contact page.</p>
+</details>
+<details class="faq">
+  <summary>Why is the JSON one column, or a line_number table?</summary>
+  <p>The text did not split into columns. That happens with scans, with words that are not spaced like a table, and with borders that are drawings rather than text. Check the PDF, or export CSV from the system that made it.</p>
+</details>
+<details class="faq">
+  <summary>Can I get Excel or CSV?</summary>
+  <p>Invoices download as .xlsx from the right-hand card or from POST /v1/invoice-xlsx. Add ?format=json for the checksum preview. Other tables return JSON. Turn the rows into CSV yourself. See <a href="/guides/json-vs-csv-for-table-data">JSON vs CSV</a>.</p>
+</details>
+<details class="faq">
+  <summary>What are the size limits?</summary>
+  <p>500 MB for an upload. 50 MB when you send a URL. Twenty extract requests a minute per IP on the API.</p>
+</details>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Does TableJSON OCR a scanned PDF?", "acceptedAnswer": {"@type": "Answer", "text": "No. It reads the text layer only. A scan needs to be recognized somewhere else first. An invoice scan comes back as FAIL: no text layer, and the Excel file still downloads."}},
+    {"@type": "Question", "name": "Do you keep my PDF?", "acceptedAnswer": {"@type": "Answer", "text": "A multipart upload is a temporary file for that request and is deleted when the response is sent. It is not added to a document library. URL fetches stay in memory for the request."}},
+    {"@type": "Question", "name": "Do I need an account?", "acceptedAnswer": {"@type": "Answer", "text": "The playground on tablejson.com does not. A direct API call, Zapier, or RapidAPI does. There is no customer login on this site. Ask for a key on the contact page."}},
+    {"@type": "Question", "name": "Why is the JSON one column, or a line_number table?", "acceptedAnswer": {"@type": "Answer", "text": "The text did not split into columns. That happens with scans, with words that are not spaced like a table, and with borders that are drawings rather than text. Check the PDF, or export CSV from the system that made it."}},
+    {"@type": "Question", "name": "Can I get Excel or CSV?", "acceptedAnswer": {"@type": "Answer", "text": "Invoices download as .xlsx from the right-hand card or from POST /v1/invoice-xlsx. Add ?format=json for the checksum preview. Other tables return JSON. Turn the rows into CSV yourself."}},
+    {"@type": "Question", "name": "What are the size limits?", "acceptedAnswer": {"@type": "Answer", "text": "500 MB for an upload. 50 MB when you send a URL. Twenty extract requests a minute per IP on the API."}}
+  ]
+}
+</script>

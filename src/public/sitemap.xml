@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://tablejson.com/</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/how-it-works</loc><lastmod>2026-10-28</lastmod></url>
+  <url><loc>https://tablejson.com/faq</loc><lastmod>2026-10-28</lastmod></url>
   <url><loc>https://tablejson.com/guides</loc><lastmod>2026-10-28</lastmod></url>
   <url><loc>https://tablejson.com/guides/extracting-tables-from-pdf-to-json</loc><lastmod>2026-10-28</lastmod></url>
   <url><loc>https://tablejson.com/guides/invoice-pdf-to-excel-and-csv</loc><lastmod>2026-10-28</lastmod></url>

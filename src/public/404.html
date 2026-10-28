@@ -9,41 +9,50 @@
   <title>Page not found — TableJSON</title>
   <meta name="description" content="That TableJSON page does not exist.">
   <link rel="icon" href="/favicon.ico?v=2" sizes="any">
-  <link rel="stylesheet" href="/site.css?v=4">
+  <link rel="stylesheet" href="/site.css?v=5">
   <meta name="theme-color" content="#0b0f19">
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <a class="logo-container" href="/">
       <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
       <div class="logo-text">TableJSON</div>
     </a>
-    <nav class="header-links">
+    <nav class="tabs" aria-label="Primary">
+      <a href="/">Tool</a>
       <a href="/guides">Guides</a>
-      <a href="/docs">Docs</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a href="/docs">API/Docs</a>
       <a href="/about">About</a>
       <a href="/contact">Contact</a>
     </nav>
   </header>
-  <main class="legal">
-    <h2>That page is not here</h2>
-    <p>The address does not match a page on TableJSON. The tool is on the playground. The long notes are under Guides. API routes under /v1 answer with JSON, not this page.</p>
-    <div class="cta-row">
-      <a class="cta" href="/">Back to the playground</a>
-      <a class="cta-ghost" href="/guides">Read the guides</a>
+  <div class="shell">
+    <section class="card">
+      <h2>That page is not here</h2>
+      <p>The address does not match a page on TableJSON. API routes under /v1 answer with JSON.</p>
+    </section>
+    <div class="link-grid">
+      <a class="guide-card" href="/"><strong>Tool</strong><span>Drop a text-layer PDF and extract tables.</span></a>
+      <a class="guide-card" href="/guides"><strong>Guides</strong><span>How the JSON is shaped, and how to clean it.</span></a>
+      <a class="guide-card" href="/how-it-works"><strong>How it works</strong><span>Steps, limits, and what happens to the file.</span></a>
+      <a class="guide-card" href="/faq"><strong>FAQ</strong><span>Scans, accounts, Excel, and size limits.</span></a>
     </div>
-  </main>
+  </div>
   <footer>
     <nav>
-      <a href="/">Playground</a>
+      <a href="/">Tool</a>
       <a href="/guides">Guides</a>
-      <a href="/docs">Docs</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a href="/docs">API/Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
-    <p>Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent.</p>
   </footer>
 </body>
 </html>

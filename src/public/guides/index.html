@@ -21,26 +21,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/site.css?v=4">
+  <link rel="stylesheet" href="/site.css?v=5">
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <a class="logo-container" href="/">
       <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
       <div class="logo-text">TableJSON</div>
     </a>
-    <nav class="header-links">
-      <a href="/">Playground</a>
-      <a href="/guides" class="on">Guides</a>
-      <a href="/docs">Docs</a>
+    <nav class="tabs" aria-label="Primary">
+      <a href="/">Tool</a>
+      <a href="/guides" class="on" aria-current="page">Guides</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a href="/docs">API/Docs</a>
       <a href="/about">About</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
   </header>
-  <main class="legal">
-    <article id="article-body">
+  <div class="shell"><main class="plain">
 <p class="kicker">Guides</p>
 <h2>Guides</h2>
 <p>These are the notes I wish a PDF had shipped with. TableJSON reads a text layer and returns rows. The playground is enough for one file. The pages below are for the second file, when the header is wrong, the statement has a blank credit column, or you are about to loop the API over a folder.</p>
@@ -55,19 +54,20 @@
   <a class="guide-card" href="/guides/automate-pdf-table-extraction"><strong>Automating PDF table extraction with the API</strong><span>Keys, the 500 MB and 50 MB limits, a folder loop, and the status fields that should stop a scan from posting.</span></a>
 </div>
 <p>The short version of the same facts is on the <a href="/">playground page</a>, under the tool. Request fields and error codes are on <a href="/docs">the API reference</a>.</p>
-    </article>
-  </main>
+    </main></div>
   <footer>
     <nav>
-      <a href="/">Playground</a>
+      <a href="/">Tool</a>
       <a href="/guides">Guides</a>
-      <a href="/docs">Docs</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a href="/docs">API/Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
-    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent.</p>
   </footer>
 </body>
 </html>

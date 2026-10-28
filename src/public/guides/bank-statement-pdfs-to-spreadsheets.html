@@ -21,31 +21,40 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/site.css?v=4">
+  <link rel="stylesheet" href="/site.css?v=5">
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <a class="logo-container" href="/">
       <img class="logo-icon" src="/icon-192.png?v=2" width="36" height="36" alt="TableJSON">
       <div class="logo-text">TableJSON</div>
     </a>
-    <nav class="header-links">
-      <a href="/">Playground</a>
-      <a href="/guides" class="on">Guides</a>
-      <a href="/docs">Docs</a>
+    <nav class="tabs" aria-label="Primary">
+      <a href="/">Tool</a>
+      <a href="/guides" class="on" aria-current="page">Guides</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a href="/docs">API/Docs</a>
       <a href="/about">About</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
   </header>
-  <main class="legal">
+  <div class="shell">
+    <div class="read-grid">
+      <nav class="toc" aria-label="On this page">
+        <p class="toc-label">On this page</p>
+        <a href="#extract-first-then-look-at-the-shape">Extract first, then look at the shape</a>
+        <a href="#put-the-blanks-back-before-you-sum-anything">Put the blanks back before you sum anything</a>
+        <a href="#checks-that-catch-a-shifted-column">Checks that catch a shifted column</a>
+        <a href="#a-column-map-you-can-reuse">A column map you can reuse</a>
+      </nav>
+      <main class="legal">
     <article id="article-body">
 <p class="kicker">Guide</p>
 <h2>Bank statement PDFs into a spreadsheet</h2>
 <p>TableJSON has no bank mode. A statement is a table, so you use the same extract as a price list, then you do the bookkeeping checks yourself. That is a feature. Bank PDFs vary more than invoices: some put withdrawals and deposits in separate columns, some use a single signed amount, some repeat a running balance, and some stick the opening balance in the first row as if it were a transaction. A special parser that assumed one of those would lie about the others.</p>
 <p>This is also a sensitive file. The upload is a temporary file on the server for the length of the request, then deleted. It is not added to a library. Still, a statement on a shared computer is a statement on a shared computer. Download the JSON, close the tab when you are done, and read the <a href="/privacy">privacy page</a> if you need the precise version of that sentence.</p>
-<h3>Extract first, then look at the shape</h3>
+<h3 id="extract-first-then-look-at-the-shape">Extract first, then look at the shape</h3>
 <p>Highlight a date in the PDF. If you cannot, it is a scan and this extract will not recover the rows. The <a href="/guides/text-layer-vs-scanned-pdfs">text-layer guide</a> is the whole answer for that case. If you can, drop the file on the left card at <a href="/">tablejson.com</a> and press Extract. Ignore the invoice card. A statement is not an invoice, and the checksum will fail closed for the wrong reason.</p>
 <p>A typical text-layer statement comes back as one table because the header repeats on each page and matching headers are merged. <code>page_number</code> might be 1 and <code>page_end</code> might be 4. <code>total_rows</code> should be in the neighborhood of the transactions you can see, plus one if the opening balance was included. Download JSON. The on-screen table is paged at 50 rows so the browser stays usable. The file has the rest.</p>
 <p>Here is a shortened row, the kind you actually get. Values are strings.</p>
@@ -61,7 +70,7 @@
   "raw_cells": ["03 Apr 2026", "CARD 4412 GROCER", "42.18", "2,368.00"]
 }</pre>
 <p>Look at that twice. <code>data.credit</code> is an empty string because the header existed, but <code>raw_cells</code> has four entries, not five. The blank credit column was dropped when the line was split. The balance slid into the credit position in the raw list, and the <code>data</code> object may have assigned <code>2,368.00</code> to <code>credit</code> and left <code>balance</code> empty, depending on how many pieces survived. I showed the hopeful <code>data</code> above. Trust <code>raw_cells</code> until the lengths match. This is the main statement bug, and it is described further in <a href="/guides/cleaning-messy-table-json">cleaning messy table JSON</a>.</p>
-<h3>Put the blanks back before you sum anything</h3>
+<h3 id="put-the-blanks-back-before-you-sum-anything">Put the blanks back before you sum anything</h3>
 <p>Decide which layout you have.</p>
 <ul>
   <li>Two amount columns, debit and credit. A normal purchase has a debit and an empty credit. A paycheck has the opposite. If <code>raw_cells</code> is shorter than the header by one, insert <code>""</code> at the empty side. Use the description and the way the balance moves to decide the side. A purchase that makes the balance fall is a debit.</li>
@@ -69,27 +78,39 @@
   <li>A running balance and no separate debit or credit. You can rebuild the movement by subtracting consecutive balances. Do that only after the rows are in statement order. A sort will destroy it.</li>
 </ul>
 <p>Then make a sheet with one row per transaction. A practical header is <code>date</code>, <code>description</code>, <code>debit</code>, <code>credit</code>, <code>balance</code>, <code>page</code>. The page comes from the table's <code>page_number</code> and <code>page_end</code>. You will not get a per-row page if the pages were merged, so record the range on the import, not a fake page on every line. Parse dates with the format printed on the statement. <code>03 Apr 2026</code> and <code>03/04/2026</code> are different conversations in the US and the UK. Keep the original string in a column called <code>date_raw</code> so you can undo a bad parse.</p>
-<h3>Checks that catch a shifted column</h3>
+<h3 id="checks-that-catch-a-shifted-column">Checks that catch a shifted column</h3>
 <p>Opening balance, plus credits, minus debits, equals closing balance. Compute it. If you are off by exactly one transaction, a row was dropped or doubled. If you are off by a huge number close to the balance itself, a balance was summed as if it were a debit. That is the slid-column bug. If you are off by a few cents, look for a row whose amount lost its separator, <code>42.18</code> read as <code>4218</code> or as <code>42</code>.</p>
 <p>The opening balance row is not a transaction. Banks print it as "OPENING BALANCE" or "BALANCE B/F" with an amount only in the balance column. If you sum it as a credit you will double the starting money. Tag that row and exclude it from the credit total. Do the same with "CLOSING BALANCE" if it appears as a last line. Use it as the target of the check, not as income.</p>
 <p>Descriptions deserve a light touch. "CARD 4412 GROCER" might wrap onto a second PDF line and become its own one-cell row, which ends the table early. If <code>tables_found</code> is more than one on a simple statement, open each table before you append them. A second table that is only wrapped descriptions should be joined to the previous transaction, not imported as a payment with no amount.</p>
-<h3>A column map you can reuse</h3>
+<h3 id="a-column-map-you-can-reuse">A column map you can reuse</h3>
 <p>Once a given bank's PDF behaves, write the map down and stop rediscovering it. For a fictional "Harbor Civic" statement the map might say: header is Date, Details, Money out, Money in, Balance. Rename <code>money_out</code> to debit and <code>money_in</code> to credit. Insert a blank when <code>raw_cells.length === 4</code>. Drop rows matching <code>/balance b\/f/i</code> after copying the balance. Date format is <code>D MMM YYYY</code>. File that note next to the importer. Next month's PDF from the same bank will hit the same rules. A PDF from a different bank needs its own note. Do not point both at one heroic function.</p>
 <p>CSV is fine as the sheet you hand to someone. Build it from the repaired rows, not from a blind dump of <code>data</code>, or the empty credit column will shift again inside the spreadsheet. The <a href="/guides/json-vs-csv-for-table-data">JSON versus CSV guide</a> shows a conversion that quotes descriptions. Descriptions on statements are full of commas ("POS, GROCER, LONDON") and an unquoted CSV will split them into extra columns.</p>
 <p>If you do this every month for a folder of clients, the playground will get old. <code>POST /v1/extract-tables</code> is the same engine, with a key, and the <a href="/guides/automate-pdf-table-extraction">API guide</a> has the loop. Keep the repair script beside that loop. Automating the extract without the balance check is how a shifted column posts quietly for a quarter.</p>
     </article>
   </main>
+    </div>
+    <section class="related" aria-label="Related guides">
+      <h2>Related guides</h2>
+      <div class="guide-grid">
+        <a class="guide-card" href="/guides/json-vs-csv-for-table-data"><strong>JSON or CSV for table data</strong><span>When to keep the tree, and when to write CSV.</span></a>
+        <a class="guide-card" href="/guides/automate-pdf-table-extraction"><strong>Automating PDF table extraction</strong><span>Keys, limits, and responses you should not import.</span></a>
+        <a class="guide-card" href="/guides/extracting-tables-from-pdf-to-json"><strong>Extracting tables from a PDF into JSON</strong><span>Headers, raw cells, and the fallback line table.</span></a>
+      </div>
+    </section>
+  </div>
   <footer>
     <nav>
-      <a href="/">Playground</a>
+      <a href="/">Tool</a>
       <a href="/guides">Guides</a>
-      <a href="/docs">Docs</a>
+      <a href="/how-it-works">How it works</a>
+      <a href="/faq">FAQ</a>
+      <a href="/docs">API/Docs</a>
       <a href="/about">About</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="/contact">Contact</a>
     </nav>
-    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent. Contact: <a href="mailto:hello@tablejson.com">hello@tablejson.com</a></p>
+    <p>Text-layer PDFs only. An upload is written to a temporary file for that request and deleted when the response is sent.</p>
   </footer>
 </body>
 </html>

@@ -12,10 +12,8 @@ const APEX = {
   'x-forwarded-proto': 'https'
 };
 
-function wordsFromArticle(html: string): number {
-  const match = html.match(/<article\b[^>]*\bid="article-body"[^>]*>([\s\S]*?)<\/article>/);
-  assert.ok(match, 'page is missing article#article-body');
-  const text = match[1]
+function visibleWords(html: string): number {
+  const text = html
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
@@ -23,6 +21,19 @@ function wordsFromArticle(html: string): number {
     .replace(/\s+/g, ' ')
     .trim();
   return text ? text.split(' ').filter(Boolean).length : 0;
+}
+
+function wordsFromArticle(html: string): number {
+  const match = html.match(/<article\b[^>]*\bid="article-body"[^>]*>([\s\S]*?)<\/article>/);
+  assert.ok(match, 'page is missing article#article-body');
+  return visibleWords(match[1]);
+}
+
+function homeWords(html: string): number {
+  const hero = html.match(/<section class="hero">([\s\S]*?)<\/section>/);
+  const copy = html.match(/<section class="home-copy" id="home-copy">([\s\S]*?)<\/section>/);
+  assert.ok(hero && copy, 'home is missing the short intro');
+  return visibleWords(hero[1] + copy[1]);
 }
 
 function canonicalHref(html: string): string {
@@ -58,15 +69,33 @@ describe('AdSense readiness', () => {
       assert.equal(ads.length, 1, loc);
       assert.doesNotMatch(response.body, /noindex/i, loc);
       assert.match(response.body, /adsbygoogle\.js\?client=ca-pub-1210860150241703/);
-      if (url.pathname === '/' || url.pathname.startsWith('/guides/')) {
+      const header = response.body.split('</header>')[0];
+      for (const label of ['Tool', 'Guides', 'How it works', 'FAQ', 'API/Docs', 'About', 'Contact']) {
+        assert.match(header, new RegExp(`>${label}<`), loc);
+      }
+      if (url.pathname === '/contact') {
+        assert.match(response.body, /mailto:hello@tablejson.com/);
+        assert.match(response.body, /id="contact-form"/);
+      } else {
+        assert.doesNotMatch(response.body, /mailto:/, loc);
+        assert.doesNotMatch(response.body, /id="contact-form"/, loc);
+      }
+      if (url.pathname.startsWith('/guides/')) {
         counts[url.pathname] = wordsFromArticle(response.body);
+        assert.match(response.body, /class="toc"/, loc);
+        assert.match(response.body, /class="related"/, loc);
       }
       if (url.pathname === '/') {
+        counts['/'] = homeWords(response.body);
+        assert.doesNotMatch(response.body, /FAQPage/);
+      }
+      if (url.pathname === '/faq') {
+        assert.match(response.body, /<details class="faq"/);
         assert.match(response.body, /"@type": "FAQPage"/);
       }
     }
 
-    assert.ok(counts['/'] >= 700 && counts['/'] <= 1000, `home words ${counts['/']}`);
+    assert.ok(counts['/'] >= 150 && counts['/'] <= 250, `home words ${counts['/']}`);
     const guidePaths = Object.keys(counts).filter((path) => path.startsWith('/guides/'));
     assert.ok(guidePaths.length >= 6 && guidePaths.length <= 8);
     for (const path of guidePaths) {
@@ -163,8 +192,8 @@ describe('AdSense readiness', () => {
   test('the playground header has one Docs link and does not claim uploads are never stored', async () => {
     const home = await fastify.inject({ method: 'GET', url: '/', headers: APEX });
     const header = home.body.split('</header>')[0];
-    const docs = header.match(/>\s*Docs\s*</g) || [];
-    assert.equal(docs.length, 1);
+    assert.equal((header.match(/>API\/Docs</g) || []).length, 1);
+    assert.equal((header.match(/>\s*Docs\s*</g) || []).length, 0);
     assert.match(home.body, /href="\/guides"/);
     assert.doesNotMatch(home.body, /Uploads are not stored/);
     assert.match(home.body, /temporary file/);
